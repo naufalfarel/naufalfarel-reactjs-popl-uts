@@ -1,7 +1,7 @@
 import React from "react";
 import HeroImage from "../HeroSection/HeroImage";
 
-const JoinImpactPlastic = () => {
+const Join = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 via-transparent to-transparent flex items-center justify-center sm:pt-32 mb-28">
       <div className="max-w-lg mx-auto p-8 bg-white shadow-md rounded-lg">
@@ -44,4 +44,4 @@ const JoinImpactPlastic = () => {
   );
 };
 
-export default JoinImpactPlastic;
+export default Join;
