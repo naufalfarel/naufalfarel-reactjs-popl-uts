@@ -5,7 +5,7 @@ import Login from "./components/Login";
 import SignIn from "./components/SignIn";
 import About from "./components/about/About";
 import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
-import JoinImpactPlastic from "./components/Howtojoin/Join";
+import Join from "./components/Howtojoin/Join";
 import {
   BrowserRouter as Router,
   Route,
