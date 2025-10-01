@@ -1,24 +1,30 @@
-import React from 'react';
-import Navbar from './components/navbar';
-import HeroSection from './components/HeroSection/HeroSection';
-import InfiniteScrollSponsors from './components/InfiniteScrollSponsor';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import Footer from './components/Footer';
+import React from "react";
+import Navbar from "./components/navbar";
+import HeroSection from "./components/HeroSection/HeroSection";
+import About from "./components/about/About";
+import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import Footer from "./components/Footer";
 
 const App = () => {
   const location = useLocation();
 
   // Sembunyikan Footer & Sponsors di halaman login/signin
-   const showFooterAndSponsors = !(
-    location.pathname === '/login' || 
-    location.pathname === '/signin'
+  const showFooterAndSponsors = !(
+    location.pathname === "/login" || location.pathname === "/signin"
   );
 
   return (
     <div>
       <Navbar />
       <Routes>
-        <Route path="/" element={<HeroSection />} /> 
+        <Route path="/" element={<HeroSection />} />
+        <Route path="/about" element={<About />} />
       </Routes>
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
