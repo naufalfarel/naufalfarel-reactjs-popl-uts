@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./components/navbar";
 import HeroSection from "./components/HeroSection/HeroSection";
+import Login from "./components/Login";
 import About from "./components/about/About";
 import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
 import {
@@ -25,6 +26,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HeroSection />} />
         <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
