@@ -28,7 +28,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/obat.jpeg"
+            src="/minumobat.png"
             alt="Kepatuhan minum obat TBC"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
@@ -39,7 +39,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/upload.png"
+            src="/obat.jpeg"
             alt="upload foto obat TBC"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
@@ -50,7 +50,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/komunitas.png"
+            src="/dukungankomunitas.jpeg"
             alt="Dukungan komunitas TBC"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
@@ -61,7 +61,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/stigma.png"
+            src="/stopstigmatbc.png"
             alt="Mengurangi stigma TBC"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
@@ -72,7 +72,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/konsultasi.png"
+            src="/konsultasidigital.jpeg"
             alt="Konsultasi kesehatan digital"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
@@ -83,7 +83,7 @@ const About = () => {
         <div className="relative">
           <img
             className="w-full h-64 object-cover rounded-lg shadow-lg"
-            src="/harapan.png"
+            src="/harapansembuh.jpeg"
             alt="Harapan menuju kesembuhan"
           />
           <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded">
