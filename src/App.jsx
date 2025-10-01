@@ -4,6 +4,7 @@ import HeroSection from "./components/HeroSection/HeroSection";
 import Login from "./components/Login";
 import About from "./components/about/About";
 import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
+import JoinImpactPlastic from "./components/Howtojoin/JoinImpactPlastic";
 import {
   BrowserRouter as Router,
   Route,
@@ -27,6 +28,8 @@ const App = () => {
         <Route path="/" element={<HeroSection />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
+
+        <Route path="/joinimpactplastic" element={<JoinImpactPlastic />} />
       </Routes>
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
