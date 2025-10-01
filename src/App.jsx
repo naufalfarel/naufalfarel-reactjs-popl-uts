@@ -31,6 +31,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/join" element={<Join />} />
+      </Routes>
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
     </div>
