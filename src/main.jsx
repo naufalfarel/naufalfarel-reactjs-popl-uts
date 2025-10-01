@@ -1,10 +1,12 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import './index.css'; // Mengimpor gaya atau CSS
+import React from 'react';
+import ReactDOM from 'react-dom/client'; // Mengimpor modul React untuk rendering ke DOM
+import App from './App'; // Mengimpor komponen App, komponen utama aplikasi
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+ 
+      <App />
+   
+  </React.StrictMode>
+);

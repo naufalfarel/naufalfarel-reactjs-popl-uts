@@ -1,0 +1,13 @@
+/* HeroImage.css */
+.slick-prev, .slick-next {
+    z-index: 1;
+  }
+  
+  .slick-dots li button:before {
+    color: #aaa;
+  }
+  
+  .slick-dots li.slick-active button:before {
+    color: #000;
+  }
+  
