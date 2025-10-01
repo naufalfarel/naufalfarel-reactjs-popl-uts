@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "./components/navbar";
 import HeroSection from "./components/HeroSection/HeroSection";
 import Login from "./components/Login";
+import SignIn from "./components/SignIn";
 import About from "./components/about/About";
 import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
 import JoinImpactPlastic from "./components/Howtojoin/JoinImpactPlastic";
@@ -28,8 +29,6 @@ const App = () => {
         <Route path="/" element={<HeroSection />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
-
-        <Route path="/joinimpactplastic" element={<JoinImpactPlastic />} />
       </Routes>
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
