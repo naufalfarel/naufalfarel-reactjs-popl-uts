@@ -29,7 +29,8 @@ const App = () => {
         <Route path="/" element={<HeroSection />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
-      </Routes>
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/joinimpactplastic" element={<JoinImpactPlastic />} />
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
     </div>
