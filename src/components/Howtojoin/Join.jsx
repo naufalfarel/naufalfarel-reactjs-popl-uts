@@ -9,28 +9,23 @@ const Join = () => {
           Mengapa Anda Harus Bergabung dengan TabbyCare
         </h1>
         <p className="text-lg text-gray-700 mb-4 text-center">
-          TabbyCare adalah komunitas yang berkomitmen untuk mendampingi pasien
-          Tuberkulosis (TBC) dalam menjalani pengobatan jangka panjang. Dengan
-          bergabung, Anda menjadi bagian dari upaya bersama untuk meningkatkan
-          kepatuhan pengobatan, mengurangi stigma, dan menciptakan dukungan
-          sosial yang positif.
+          TabbyCare adalah aplikasi pendamping digital bagi pasien Tuberkulosis (TBC) 
+          yang dirancang untuk membantu mereka lebih disiplin, terarah, dan termotivasi dalam menjalani pengobatan jangka panjang. 
+          Melalui fitur pengingat obat, pencatatan progres, jadwal kunjungan, serta edukasi kesehatan, 
+          TabbyCare hadir untuk memudahkan pasien menuntaskan terapi dengan dukungan yang menyeluruh.
         </p>
         <ul className="list-disc list-inside text-gray-600 mb-6">
           <li>
-            Terhubung dengan pasien dan penyintas TBC yang saling memberikan
-            dukungan
+            Menjalani terapi lebih disiplin dengan pengingat harian dan check-in obat.
           </li>
           <li>
-            Ikut serta dalam program edukasi dan kegiatan yang mendorong
-            kepatuhan terapi
+           Memantau progres pengobatan melalui kalender dan catatan riwayat.
           </li>
           <li>
-            Akses ke informasi, tips kesehatan, dan panduan gizi selama
-            pengobatan
+            Mendapatkan edukasi, tips kesehatan, dan panduan gizi selama pengobatan
           </li>
           <li>
-            Menjadi bagian dari perubahan positif untuk mengurangi beban TBC di
-            masyarakat
+            Terhubung dengan komunitas pasien dan penyintas TBC untuk saling memberi dukungan.
           </li>
         </ul>
         <p className="text-lg text-gray-700 text-center">
