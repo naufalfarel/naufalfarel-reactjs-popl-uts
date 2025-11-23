@@ -1,6 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API_URL = "http://localhost:5000/api";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      // Call login API
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.data.success) {
+        // Save token and user to localStorage
+        localStorage.setItem("token", response.data.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.data.user));
+
+        // Redirect to dashboard
+        navigate("/dashboard");
+      } else {
+        setError(response.data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-red-400 to-red-600 px-4 sm:px-6 lg:px-8">
@@ -22,13 +73,25 @@ const Login = () => {
                   Get started with our experience and enjoy
                 </span>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="w-full mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="w-full flex flex-col gap-4">
                 <label className="font-semibold text-sm text-gray-600">
-                  Username
+                  Email / Username
                 </label>
                 <input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   className="border rounded-lg px-4 py-3 text-sm w-full outline-none shadow focus:ring-2 focus:ring-red-400 transition duration-200"
-                  placeholder="Username"
+                  placeholder="Enter your email"
                 />
               </div>
               <div className="w-full flex flex-col gap-4 mt-4">
@@ -36,20 +99,43 @@ const Login = () => {
                   Password
                 </label>
                 <input
+                  name="password"
                   type="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   className="border rounded-lg px-4 py-3 text-sm w-full outline-none shadow focus:ring-2 focus:ring-red-400 transition duration-200"
                   placeholder="••••••••"
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleLogin();
+                    }
+                  }}
                 />
               </div>
-              <div className="mt-6">
-                <button className="mb-4 py-2 px-8 bg-red-500 hover:bg-red-700 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none">
-                  Login
+              <div className="mt-6 w-full">
+                <button
+                  onClick={handleLogin}
+                  disabled={loading}
+                  className="mb-4 py-2 px-8 bg-red-500 hover:bg-red-700 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Loading..." : "Login"}
                 </button>
-                <a href="/signin">
-                  <button className="py-2 px-8 bg-red-500 hover:bg-red-700 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none">
-                    Sign In
-                  </button>
-                </a>
+                <button
+                  onClick={() => navigate("/signin")}
+                  className="py-2 px-8 bg-red-500 hover:bg-red-700 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
+                >
+                  Sign In
+                </button>
+              </div>
+
+              {/* Back to Home Link */}
+              <div className="mt-4 text-center w-full">
+                <button
+                  onClick={() => navigate("/")}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  ← Back to Home
+                </button>
               </div>
             </div>
           </div>
