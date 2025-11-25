@@ -14,6 +14,10 @@ const notificationRoutes = require("./routes/notification");
 const progresRoutes = require("./routes/progres");
 const kunjunganRoutes = require("./routes/kunjungan");
 const edukasiRoutes = require("./routes/edukasi");
+const familyRoutes = require("./routes/family");
+
+// Import notification controller for cron
+const { setupCronJobs } = require("./controllers/notificationController");
 
 const app = express();
 
@@ -38,6 +42,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/progres", progresRoutes);
 app.use("/api/kunjungan", kunjunganRoutes);
 app.use("/api/edukasi", edukasiRoutes);
+app.use("/api/family", familyRoutes);
 
 // Test route
 app.get("/", (req, res) => {
@@ -77,4 +82,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 API URL: http://localhost:${PORT}`);
+
+  // Setup cron jobs for notifications
+  setupCronJobs();
 });

@@ -3,21 +3,31 @@ const path = require("path");
 const fs = require("fs");
 
 // Create uploads directory if it doesn't exist
-const uploadDir = path.join(__dirname, "../uploads/obat");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDirObat = path.join(__dirname, "../uploads/obat");
+const uploadDirProgres = path.join(__dirname, "../uploads/progres");
+
+if (!fs.existsSync(uploadDirObat)) {
+  fs.mkdirSync(uploadDirObat, { recursive: true });
+}
+if (!fs.existsSync(uploadDirProgres)) {
+  fs.mkdirSync(uploadDirProgres, { recursive: true });
 }
 
 // Storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    // Determine upload directory based on route
+    const uploadDir = req.baseUrl.includes("progres")
+      ? uploadDirProgres
+      : uploadDirObat;
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     // Generate unique filename
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    cb(null, "obat-" + uniqueSuffix + ext);
+    const prefix = req.baseUrl.includes("progres") ? "progres" : "obat";
+    cb(null, prefix + "-" + uniqueSuffix + ext);
   },
 });
 

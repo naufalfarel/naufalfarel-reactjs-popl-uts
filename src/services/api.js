@@ -110,4 +110,14 @@ export const edukasiService = {
   seed: () => api.post("/edukasi/seed"),
 };
 
+// Family Services
+export const familyService = {
+  add: (data) => api.post("/family", data),
+  getAll: () => api.get("/family"),
+  update: (id, data) => api.put(`/family/${id}`, data),
+  delete: (id) => api.delete(`/family/${id}`),
+  getPatientProgress: (patientId) =>
+    api.get(`/family/patient/${patientId}/progress`),
+};
+
 export default api;

@@ -8,7 +8,6 @@ import InfiniteScrollSponsors from "./components/InfiniteScrollSponsor";
 import Join from "./components/Howtojoin/Join";
 import Footer from "./components/Footer";
 
-// Import new components for authenticated features
 import Dashboard from "./pages/Dashboard";
 import EdukasiList from "./pages/Edukasi/EdukasiList";
 import EdukasiDetail from "./pages/Edukasi/EdukasiDetail";
@@ -19,6 +18,7 @@ import ProgresForm from "./pages/Progres/ProgresForm";
 import KunjunganList from "./pages/Kunjungan/KunjunganList";
 import KunjunganForm from "./pages/Kunjungan/KunjunganForm";
 import NotificationList from "./pages/Notifications/NotificationList";
+import FamilyManagement from "./pages/Family/FamilyManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import {
@@ -33,6 +33,17 @@ const App = () => {
   const token = localStorage.getItem("token");
   const isAuthenticated = !!token;
 
+  // Halaman setelah login (navbar harus hilang)
+  const protectedRoutes = [
+    "/dashboard",
+    "/edukasi",
+    "/progres",
+    "/kunjungan",
+    "/obat",
+    "/notifications",
+    "/family",
+  ];
+
   // Hide Footer & Sponsors on login/signin AND authenticated pages
   const showFooterAndSponsors = !(
     location.pathname === "/login" ||
@@ -40,10 +51,17 @@ const App = () => {
     isAuthenticated
   );
 
+  // Navbar hanya muncul jika:
+  // 1. Bukan halaman login / signin
+  // 2. Bukan halaman protected (setelah login)
+  const hideNavbar =
+    location.pathname === "/login" ||
+    location.pathname === "/signin" ||
+    protectedRoutes.some((path) => location.pathname.startsWith(path));
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Show old Navbar only on public pages */}
-      {!isAuthenticated && <Navbar />}
+      {!hideNavbar && <Navbar />}
 
       <Routes>
         {/* Public Routes */}
@@ -53,7 +71,7 @@ const App = () => {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/join" element={<Join />} />
 
-        {/* Protected Routes - Requires Authentication */}
+        {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={
@@ -63,7 +81,7 @@ const App = () => {
           }
         />
 
-        {/* Edukasi Routes */}
+        {/* Edukasi */}
         <Route
           path="/edukasi"
           element={
@@ -81,7 +99,7 @@ const App = () => {
           }
         />
 
-        {/* Obat Routes */}
+        {/* Obat */}
         <Route
           path="/obat"
           element={
@@ -107,7 +125,7 @@ const App = () => {
           }
         />
 
-        {/* Progres Routes */}
+        {/* Progres */}
         <Route
           path="/progres"
           element={
@@ -133,7 +151,7 @@ const App = () => {
           }
         />
 
-        {/* Kunjungan Routes */}
+        {/* Kunjungan */}
         <Route
           path="/kunjungan"
           element={
@@ -159,7 +177,7 @@ const App = () => {
           }
         />
 
-        {/* Notifications Route */}
+        {/* Notifications */}
         <Route
           path="/notifications"
           element={
@@ -168,9 +186,18 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Family Management */}
+        <Route
+          path="/family"
+          element={
+            <ProtectedRoute>
+              <FamilyManagement />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
-      {/* Show Footer & Sponsors only on public pages */}
       {showFooterAndSponsors && <InfiniteScrollSponsors />}
       {showFooterAndSponsors && <Footer />}
     </div>
