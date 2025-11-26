@@ -15,6 +15,7 @@ const progresRoutes = require("./routes/progres");
 const kunjunganRoutes = require("./routes/kunjungan");
 const edukasiRoutes = require("./routes/edukasi");
 const familyRoutes = require("./routes/family");
+const profileRoutes = require("./routes/profile");
 
 // Import notification controller for cron
 const { setupCronJobs } = require("./controllers/notificationController");
@@ -43,6 +44,7 @@ app.use("/api/progres", progresRoutes);
 app.use("/api/kunjungan", kunjunganRoutes);
 app.use("/api/edukasi", edukasiRoutes);
 app.use("/api/family", familyRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Test route
 app.get("/", (req, res) => {

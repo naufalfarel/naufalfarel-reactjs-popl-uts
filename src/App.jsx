@@ -21,6 +21,8 @@ import NotificationList from "./pages/Notifications/NotificationList";
 import FamilyManagement from "./pages/Family/FamilyManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import ProfilePage from "./pages/Profile/ProfilePage";
+
 import {
   BrowserRouter as Router,
   Route,
@@ -33,7 +35,7 @@ const App = () => {
   const token = localStorage.getItem("token");
   const isAuthenticated = !!token;
 
-  // Halaman setelah login (navbar harus hilang)
+  // Halaman protected (navbar hilang)
   const protectedRoutes = [
     "/dashboard",
     "/edukasi",
@@ -42,18 +44,17 @@ const App = () => {
     "/obat",
     "/notifications",
     "/family",
+    "/profile",
   ];
 
-  // Hide Footer & Sponsors on login/signin AND authenticated pages
+  // Footer & sponsor disembunyikan di login, signup, & halaman yang sudah login
   const showFooterAndSponsors = !(
     location.pathname === "/login" ||
     location.pathname === "/signin" ||
     isAuthenticated
   );
 
-  // Navbar hanya muncul jika:
-  // 1. Bukan halaman login / signin
-  // 2. Bukan halaman protected (setelah login)
+  // Navbar disembunyikan pada login/signin dan halaman setelah login
   const hideNavbar =
     location.pathname === "/login" ||
     location.pathname === "/signin" ||
@@ -77,6 +78,16 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
