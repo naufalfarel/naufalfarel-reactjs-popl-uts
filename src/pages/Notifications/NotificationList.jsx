@@ -12,13 +12,27 @@ const NotificationList = () => {
   const [filter, setFilter] = useState("all");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [isRealtime, setIsRealtime] = useState(true);
+  const [lastSync, setLastSync] = useState(null);
+  const POLLING_INTERVAL = 60000;
 
   useEffect(() => {
     loadNotifications();
   }, [filter]);
 
-  const loadNotifications = async () => {
+  useEffect(() => {
+    if (!isRealtime) return;
+    const interval = setInterval(() => {
+      loadNotifications(false);
+    }, POLLING_INTERVAL);
+    return () => clearInterval(interval);
+  }, [filter, isRealtime]);
+
+  const loadNotifications = async (showLoader = true) => {
     try {
+      if (showLoader) {
+        setLoading(true);
+      }
       const token = localStorage.getItem("token");
       const params = filter !== "all" ? { status: filter } : {};
 
@@ -29,6 +43,7 @@ const NotificationList = () => {
 
       if (response.data.success) {
         setNotifications(response.data.data.notifications);
+        setLastSync(new Date());
       }
     } catch (error) {
       console.error("Error loading notifications:", error);
@@ -136,21 +151,64 @@ const NotificationList = () => {
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 py-8 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
                 🔔 Notifikasi
               </h1>
               <p className="text-gray-600 mt-2">
-                Kelola pengingat dan notifikasi Anda
+                Kelola pengingat email dan catatan konsumsi obat
               </p>
             </div>
-            <button
-              onClick={handleSendTestEmail}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              🧪 Test Email
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => navigate("/family")}
+                className="bg-white border border-gray-200 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center gap-2"
+              >
+                👨‍👩‍👧 Kelola Keluarga
+              </button>
+              <button
+                onClick={handleSendTestEmail}
+                className="bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+              >
+                🧪 Kirim Test Email
+              </button>
+            </div>
+          </div>
+
+          {/* Realtime status */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">
+                Realtime sync aktif setiap {POLLING_INTERVAL / 1000} detik. Anda
+                akan mendapatkan update otomatis tanpa perlu refresh.
+              </p>
+              {lastSync && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Terakhir sinkron:{" "}
+                  {new Date(lastSync).toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </p>
+              )}
+            </div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span>Realtime</span>
+              <div
+                className={`w-12 h-6 rounded-full cursor-pointer transition ${
+                  isRealtime ? "bg-green-500" : "bg-gray-300"
+                }`}
+                onClick={() => setIsRealtime(!isRealtime)}
+              >
+                <div
+                  className={`w-5 h-5 bg-white rounded-full shadow transform transition ${
+                    isRealtime ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </div>
+            </label>
           </div>
 
           {/* Alert Messages */}
@@ -172,7 +230,7 @@ const NotificationList = () => {
             </h3>
             <p className="text-blue-800 text-sm mb-3">
               Sistem akan mengirim email otomatis ke Anda dan keluarga yang
-              terdaftar untuk:
+              diaktifkan di menu “Manajemen Keluarga” untuk:
             </p>
             <ul className="list-disc list-inside text-blue-800 text-sm space-y-1">
               <li>
@@ -189,8 +247,8 @@ const NotificationList = () => {
               </li>
             </ul>
             <p className="text-blue-800 text-sm mt-3">
-              💡 <strong>Tip:</strong> Tambahkan keluarga di menu "Manajemen
-              Keluarga" agar mereka juga menerima notifikasi.
+              💡 <strong>Tip:</strong> Tambahkan keluarga dengan email valid
+              agar mereka ikut menerima pengingat dan ringkasan mingguan.
             </p>
           </div>
 
@@ -238,66 +296,84 @@ const NotificationList = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {notifications.map((notif) => (
-                <div
-                  key={notif._id}
-                  className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-gray-800">
-                          {notif.title}
-                        </h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            getStatusBadge(notif.status).bg
-                          } ${getStatusBadge(notif.status).text}`}
-                        >
-                          {getStatusBadge(notif.status).label}
-                        </span>
-                        {notif.isTaken && (
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                            ✓ Sudah Diminum
+              {notifications.map((notif) => {
+                const now = new Date();
+                const scheduledAt = new Date(notif.scheduledTime);
+                const isDue = scheduledAt <= now;
+
+                return (
+                  <div
+                    key={notif._id}
+                    className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-bold text-gray-800">
+                            {notif.title}
+                          </h3>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              getStatusBadge(notif.status).bg
+                            } ${getStatusBadge(notif.status).text}`}
+                          >
+                            {getStatusBadge(notif.status).label}
                           </span>
+                          {notif.isTaken && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                              ✓ Sudah Diminum
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-gray-600 mb-3">{notif.message}</p>
+
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>📅 {formatDate(notif.scheduledTime)}</span>
+                          <span>⏰ {formatTime(notif.scheduledTime)}</span>
+                          {notif.sentAt && (
+                            <span className="text-green-600 font-medium">
+                              ✉️ dikirim {formatTime(notif.sentAt)}
+                            </span>
+                          )}
+                        </div>
+
+                        {notif.obatId && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-700">
+                              <strong>Obat:</strong> {notif.obatId.namaObat} -{" "}
+                              {notif.obatId.dosis}
+                            </p>
+                          </div>
+                        )}
+
+                        {notif.takenAt && (
+                          <p className="text-xs text-green-600 mt-2">
+                            Diminum pada: {formatDate(notif.takenAt)}{" "}
+                            {formatTime(notif.takenAt)}
+                          </p>
                         )}
                       </div>
 
-                      <p className="text-gray-600 mb-3">{notif.message}</p>
-
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>📅 {formatDate(notif.scheduledTime)}</span>
-                        <span>⏰ {formatTime(notif.scheduledTime)}</span>
-                      </div>
-
-                      {notif.obatId && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-700">
-                            <strong>Obat:</strong> {notif.obatId.namaObat} -{" "}
-                            {notif.obatId.dosis}
-                          </p>
-                        </div>
-                      )}
-
-                      {notif.takenAt && (
-                        <p className="text-xs text-green-600 mt-2">
-                          Diminum pada: {formatDate(notif.takenAt)}{" "}
-                          {formatTime(notif.takenAt)}
-                        </p>
-                      )}
+                      {!notif.isTaken &&
+                        notif.status !== "dismissed" &&
+                        (isDue ? (
+                          <button
+                            onClick={() => handleMarkAsTaken(notif._id)}
+                            className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition whitespace-nowrap"
+                          >
+                            ✓ Sudah Minum
+                          </button>
+                        ) : (
+                          <div className="ml-4 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 bg-gray-50">
+                            ⏳ Menunggu jadwal (
+                            {formatTime(notif.scheduledTime)})
+                          </div>
+                        ))}
                     </div>
-
-                    {!notif.isTaken && notif.status !== "dismissed" && (
-                      <button
-                        onClick={() => handleMarkAsTaken(notif._id)}
-                        className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition whitespace-nowrap"
-                      >
-                        ✓ Sudah Minum
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

@@ -95,16 +95,12 @@ exports.markAsTaken = async (req, res) => {
 exports.sendDailyReminders = async (req, res) => {
   try {
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
-    // Find all pending notifications for current time
+    // Find notifications that should be sent now (or overdue but not yet sent)
     const notifications = await Notification.find({
       status: "pending",
-      scheduledTime: {
-        $gte: new Date(now.getTime() - 5 * 60000), // 5 minutes ago
-        $lte: new Date(now.getTime() + 5 * 60000), // 5 minutes from now
-      },
+      sentAt: null,
+      isTaken: false,
+      scheduledTime: { $lte: now },
     }).populate("userId obatId");
 
     let sentCount = 0;
@@ -120,11 +116,12 @@ exports.sendDailyReminders = async (req, res) => {
 
         const familyEmails = familyMembers.map((f) => f.email);
 
-        // Send reminder email
+        // Send reminder email to patient + family
         await sendMedicationReminder(notif.userId, notif.obatId, familyEmails);
 
         // Update notification status
         notif.status = "sent";
+        notif.sentAt = new Date();
         await notif.save();
 
         sentCount++;
@@ -277,8 +274,8 @@ exports.sendWeeklySummaryEmail = async (req, res) => {
 
 // Setup Cron Jobs
 exports.setupCronJobs = () => {
-  // Check for reminders every 5 minutes
-  cron.schedule("*/5 * * * *", async () => {
+  // Check for reminders every minute for near real-time email delivery
+  cron.schedule("* * * * *", async () => {
     console.log("🔔 Running medication reminder check...");
     try {
       // Call the controller function programmatically

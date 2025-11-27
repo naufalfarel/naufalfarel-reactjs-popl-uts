@@ -15,6 +15,8 @@ const FamilyManagement = () => {
     email: "",
     relation: "parent",
     phone: "",
+    emailNotifications: true,
+    weeklySummary: true,
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -56,7 +58,14 @@ const FamilyManagement = () => {
           "Anggota keluarga berhasil ditambahkan! Email undangan telah dikirim."
         );
         setShowAddModal(false);
-        setFormData({ name: "", email: "", relation: "parent", phone: "" });
+        setFormData({
+          name: "",
+          email: "",
+          relation: "parent",
+          phone: "",
+          emailNotifications: true,
+          weeklySummary: true,
+        });
         loadFamilyMembers();
       }
     } catch (err) {
@@ -335,6 +344,37 @@ const FamilyManagement = () => {
                   placeholder="08123456789"
                 />
               </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.emailNotifications}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        emailNotifications: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded"
+                  />
+                  Aktifkan notifikasi email untuk jadwal minum obat
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.weeklySummary}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        weeklySummary: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded"
+                  />
+                  Kirim ringkasan mingguan ke email anggota keluarga ini
+                </label>
+              </div>
             </div>
 
             <div className="flex gap-4 mt-6">
@@ -346,6 +386,8 @@ const FamilyManagement = () => {
                     email: "",
                     relation: "parent",
                     phone: "",
+                    emailNotifications: true,
+                    weeklySummary: true,
                   });
                   setError("");
                 }}

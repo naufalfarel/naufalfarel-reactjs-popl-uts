@@ -1,10 +1,28 @@
 const nodemailer = require("nodemailer");
 
+let cachedTransporter = null;
+
 // Create transporter
 const createTransporter = () => {
-  // For development: use Mailtrap or Gmail
-  if (process.env.NODE_ENV === "development" && process.env.MAILTRAP_USER) {
-    return nodemailer.createTransporter({
+  if (cachedTransporter) return cachedTransporter;
+
+  // Prefer custom SMTP if provided
+  if (process.env.MAIL_HOST && process.env.MAIL_USER) {
+    cachedTransporter = nodemailer.createTransport({
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT) || 587,
+      secure: process.env.MAIL_SECURE === "true",
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+    return cachedTransporter;
+  }
+
+  // Development: Mailtrap
+  if (process.env.MAILTRAP_USER && process.env.MAILTRAP_PASS) {
+    cachedTransporter = nodemailer.createTransport({
       host: "smtp.mailtrap.io",
       port: 2525,
       auth: {
@@ -12,16 +30,25 @@ const createTransporter = () => {
         pass: process.env.MAILTRAP_PASS,
       },
     });
+    return cachedTransporter;
   }
 
-  // For production: use Gmail SMTP
-  return nodemailer.createTransporter({
+  // Fallback to Gmail SMTP
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.warn(
+      "⚠️  Email credentials not configured. Please set EMAIL_USER and EMAIL_PASSWORD."
+    );
+  }
+
+  cachedTransporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD, // Use App Password for Gmail
+      pass: process.env.EMAIL_PASSWORD,
     },
   });
+
+  return cachedTransporter;
 };
 
 // Send Email Function

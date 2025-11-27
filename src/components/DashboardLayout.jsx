@@ -22,6 +22,7 @@ const DashboardLayout = ({ children }) => {
     { name: "Kunjungan", path: "/kunjungan", icon: "📅" },
     { name: "Edukasi", path: "/edukasi", icon: "📚" },
     { name: "Notifikasi", path: "/notifications", icon: "🔔" },
+    { name: "Keluarga", path: "/family", icon: "👨‍👩‍👧" },
   ];
 
   return (
