@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../../components/DashboardLayout";
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api";
+import { edukasiService } from "../../services/api";
 
 const EdukasiDetail = () => {
   const navigate = useNavigate();
@@ -18,15 +16,15 @@ const EdukasiDetail = () => {
 
   const loadEdukasi = async () => {
     try {
-      const response = await axios.get(`${API_URL}/edukasi/${id}`);
+      const response = await edukasiService.getById(id);
 
       if (response.data.success) {
         const edukasiData = response.data.data.edukasi;
         setEdukasi(edukasiData);
 
         // Load related articles
-        const relatedRes = await axios.get(
-          `${API_URL}/edukasi/kategori/${edukasiData.kategori}`
+        const relatedRes = await edukasiService.getByKategori(
+          edukasiData.kategori
         );
         if (relatedRes.data.success) {
           // Filter out current article and take first 3
@@ -168,9 +166,228 @@ const EdukasiDetail = () => {
               )}
 
               {/* Main Content */}
-              <div className="prose max-w-none">
-                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {edukasi.konten}
+              <div className="prose prose-lg max-w-none">
+                <div className="text-gray-700 leading-relaxed article-content">
+                  {(() => {
+                    const lines = edukasi.konten.split("\n");
+                    const elements = [];
+                    let inList = false;
+                    let listItems = [];
+                    let listType = null; // 'ul' or 'ol'
+
+                    const processInlineFormatting = (text) => {
+                      return text
+                        .replace(
+                          /\*\*(.+?)\*\*/g,
+                          '<strong class="font-bold text-gray-800">$1</strong>'
+                        )
+                        .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>');
+                    };
+
+                    const closeList = () => {
+                      if (listItems.length > 0) {
+                        const ListTag = listType === "ol" ? "ol" : "ul";
+                        elements.push(
+                          React.createElement(
+                            ListTag,
+                            {
+                              key: `list-${elements.length}`,
+                              className: "mb-4 ml-6 space-y-2",
+                            },
+                            listItems
+                          )
+                        );
+                        listItems = [];
+                        inList = false;
+                        listType = null;
+                      }
+                    };
+
+                    lines.forEach((line, index) => {
+                      const trimmedLine = line.trim();
+
+                      // Headers
+                      if (trimmedLine.match(/^#{1,6}\s/)) {
+                        closeList();
+                        const level = trimmedLine.match(/^#+/)[0].length;
+                        const text = trimmedLine.replace(/^#+\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        const HeadingTag = `h${level}`;
+                        elements.push(
+                          React.createElement(
+                            HeadingTag,
+                            {
+                              key: index,
+                              className: `font-bold text-gray-800 mt-8 mb-4 ${
+                                level === 1
+                                  ? "text-3xl"
+                                  : level === 2
+                                  ? "text-2xl"
+                                  : level === 3
+                                  ? "text-xl"
+                                  : "text-lg"
+                              }`,
+                            },
+                            text
+                          )
+                        );
+                        return;
+                      }
+
+                      // Bullet points
+                      if (trimmedLine.match(/^-\s/)) {
+                        if (!inList || listType !== "ul") {
+                          closeList();
+                          inList = true;
+                          listType = "ul";
+                        }
+                        const text = trimmedLine.replace(/^-\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        listItems.push(
+                          <li
+                            key={`li-${index}`}
+                            className="mb-2"
+                            dangerouslySetInnerHTML={{ __html: processedText }}
+                          />
+                        );
+                        return;
+                      }
+
+                      // Numbered lists
+                      if (trimmedLine.match(/^\d+\.\s/)) {
+                        if (!inList || listType !== "ol") {
+                          closeList();
+                          inList = true;
+                          listType = "ol";
+                        }
+                        const text = trimmedLine.replace(/^\d+\.\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        listItems.push(
+                          <li
+                            key={`li-${index}`}
+                            className="mb-2"
+                            dangerouslySetInnerHTML={{ __html: processedText }}
+                          />
+                        );
+                        return;
+                      }
+
+                      // Close list if we hit a non-list item
+                      if (inList && trimmedLine) {
+                        closeList();
+                      }
+
+                      // Checkmarks
+                      if (trimmedLine.match(/^✅\s/)) {
+                        const text = trimmedLine.replace(/^✅\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        elements.push(
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 mb-3"
+                          >
+                            <span className="text-green-600 mt-1 text-xl">
+                              ✓
+                            </span>
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processedText,
+                              }}
+                            />
+                          </div>
+                        );
+                        return;
+                      }
+
+                      // X marks
+                      if (trimmedLine.match(/^❌\s/)) {
+                        const text = trimmedLine.replace(/^❌\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        elements.push(
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 mb-3"
+                          >
+                            <span className="text-red-600 mt-1 text-xl">✗</span>
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processedText,
+                              }}
+                            />
+                          </div>
+                        );
+                        return;
+                      }
+
+                      // Warning
+                      if (trimmedLine.match(/^⚠️\s/)) {
+                        const text = trimmedLine.replace(/^⚠️\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        elements.push(
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 mb-3 bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500"
+                          >
+                            <span className="text-yellow-600 mt-1 text-xl">
+                              ⚠
+                            </span>
+                            <span
+                              className="font-medium"
+                              dangerouslySetInnerHTML={{
+                                __html: processedText,
+                              }}
+                            />
+                          </div>
+                        );
+                        return;
+                      }
+
+                      // Alert
+                      if (trimmedLine.match(/^🚨\s/)) {
+                        const text = trimmedLine.replace(/^🚨\s/, "");
+                        const processedText = processInlineFormatting(text);
+                        elements.push(
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 mb-3 bg-red-50 p-4 rounded-lg border-l-4 border-red-500"
+                          >
+                            <span className="text-red-600 mt-1 text-xl">
+                              🚨
+                            </span>
+                            <span
+                              className="font-bold"
+                              dangerouslySetInnerHTML={{
+                                __html: processedText,
+                              }}
+                            />
+                          </div>
+                        );
+                        return;
+                      }
+
+                      // Empty line
+                      if (!trimmedLine) {
+                        elements.push(<br key={index} />);
+                        return;
+                      }
+
+                      // Regular paragraph
+                      const processedLine =
+                        processInlineFormatting(trimmedLine);
+                      elements.push(
+                        <p
+                          key={index}
+                          className="mb-4 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: processedLine }}
+                        />
+                      );
+                    });
+
+                    // Close any remaining list
+                    closeList();
+
+                    return elements;
+                  })()}
                 </div>
               </div>
 
@@ -236,27 +453,59 @@ const EdukasiDetail = () => {
           )}
 
           {/* Action Box */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-6 rounded-lg">
-            <h3 className="font-semibold text-green-900 mb-3">
-              💡 Apakah artikel ini bermanfaat?
-            </h3>
-            <p className="text-green-800 text-sm mb-4">
-              Jangan lupa untuk menerapkan tips yang Anda pelajari dan
-              konsultasikan dengan dokter jika ada pertanyaan.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => navigate("/edukasi")}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700"
-              >
-                Baca Artikel Lainnya
-              </button>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="px-4 py-2 bg-white text-green-700 border border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50"
-              >
-                Kembali ke Dashboard
-              </button>
+          <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-l-4 border-green-500 p-8 rounded-xl shadow-lg">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="text-4xl">💡</div>
+              <div className="flex-1">
+                <h3 className="font-bold text-green-900 mb-2 text-lg">
+                  Apakah artikel ini bermanfaat?
+                </h3>
+                <p className="text-green-800 text-sm mb-6 leading-relaxed">
+                  Jangan lupa untuk menerapkan tips yang Anda pelajari dan
+                  konsultasikan dengan dokter jika ada pertanyaan. Pengetahuan
+                  yang baik adalah langkah pertama menuju kesembuhan.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => navigate("/edukasi")}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md hover:shadow-lg flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    Baca Artikel Lainnya
+                  </button>
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="px-6 py-3 bg-white text-green-700 border-2 border-green-300 rounded-lg text-sm font-semibold hover:bg-green-50 transition shadow-md hover:shadow-lg flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                      />
+                    </svg>
+                    Kembali ke Dashboard
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

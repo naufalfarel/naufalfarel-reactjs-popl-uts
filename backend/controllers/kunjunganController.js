@@ -1,4 +1,4 @@
-const Kunjungan = require("../models/Kunjungan");
+const Kunjungan = require("../models/kunjungan");
 const Notification = require("../models/Notification");
 
 // Create Medical Visit
@@ -15,6 +15,21 @@ exports.createKunjungan = async (req, res) => {
       reminderBefore,
     } = req.body;
 
+    // Validation
+    if (!judulKunjungan || !tanggalKunjungan || !waktuKunjungan) {
+      return res.status(400).json({
+        success: false,
+        message: "Judul, tanggal, dan waktu kunjungan wajib diisi",
+      });
+    }
+
+    if (!lokasi || !lokasi.namaRumahSakit) {
+      return res.status(400).json({
+        success: false,
+        message: "Nama rumah sakit wajib diisi",
+      });
+    }
+
     const kunjunganData = {
       userId: req.userId,
       judulKunjungan,
@@ -26,25 +41,31 @@ exports.createKunjungan = async (req, res) => {
           ? JSON.parse(dokter)
           : dokter
         : undefined,
-      jenisKunjungan,
-      catatan,
+      jenisKunjungan: jenisKunjungan || "kontrol_rutin",
+      catatan: catatan || "",
       reminderBefore: reminderBefore || 24,
     };
 
     const kunjungan = await Kunjungan.create(kunjunganData);
 
     // Create notification reminder
-    await createKunjunganNotification(kunjungan);
+    try {
+      await createKunjunganNotification(kunjungan);
+    } catch (notifError) {
+      console.error("Error creating notification:", notifError);
+      // Don't fail the request if notification creation fails
+    }
 
     res.status(201).json({
       success: true,
-      message: "Medical visit scheduled successfully",
+      message: "Kunjungan medis berhasil dijadwalkan",
       data: { kunjungan },
     });
   } catch (error) {
+    console.error("Error creating kunjungan:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to create medical visit",
+      message: "Gagal membuat kunjungan medis",
       error: error.message,
     });
   }
@@ -76,9 +97,10 @@ exports.getAllKunjungan = async (req, res) => {
       data: { kunjunganList },
     });
   } catch (error) {
+    console.error("Error getting kunjungan:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to get medical visits",
+      message: "Gagal mendapatkan daftar kunjungan",
       error: error.message,
     });
   }
@@ -95,7 +117,7 @@ exports.getKunjunganById = async (req, res) => {
     if (!kunjungan) {
       return res.status(404).json({
         success: false,
-        message: "Medical visit not found",
+        message: "Kunjungan tidak ditemukan",
       });
     }
 
@@ -104,9 +126,10 @@ exports.getKunjunganById = async (req, res) => {
       data: { kunjungan },
     });
   } catch (error) {
+    console.error("Error getting kunjungan by id:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to get medical visit",
+      message: "Gagal mendapatkan data kunjungan",
       error: error.message,
     });
   }
@@ -135,50 +158,62 @@ exports.updateKunjungan = async (req, res) => {
     if (!kunjungan) {
       return res.status(404).json({
         success: false,
-        message: "Medical visit not found",
+        message: "Kunjungan tidak ditemukan",
       });
     }
 
-    // Update fields
-    kunjungan.judulKunjungan = judulKunjungan || kunjungan.judulKunjungan;
-    kunjungan.tanggalKunjungan = tanggalKunjungan || kunjungan.tanggalKunjungan;
-    kunjungan.waktuKunjungan = waktuKunjungan || kunjungan.waktuKunjungan;
-    kunjungan.lokasi = lokasi
-      ? typeof lokasi === "string"
-        ? JSON.parse(lokasi)
-        : lokasi
-      : kunjungan.lokasi;
-    kunjungan.dokter = dokter
-      ? typeof dokter === "string"
-        ? JSON.parse(dokter)
-        : dokter
-      : kunjungan.dokter;
-    kunjungan.jenisKunjungan = jenisKunjungan || kunjungan.jenisKunjungan;
-    kunjungan.catatan = catatan !== undefined ? catatan : kunjungan.catatan;
-    kunjungan.reminderBefore = reminderBefore || kunjungan.reminderBefore;
-    kunjungan.status = status || kunjungan.status;
+    // Update fields (only update if provided)
+    if (judulKunjungan !== undefined) kunjungan.judulKunjungan = judulKunjungan;
+    if (tanggalKunjungan !== undefined)
+      kunjungan.tanggalKunjungan = tanggalKunjungan;
+    if (waktuKunjungan !== undefined) kunjungan.waktuKunjungan = waktuKunjungan;
+    if (lokasi !== undefined) {
+      kunjungan.lokasi =
+        typeof lokasi === "string" ? JSON.parse(lokasi) : lokasi;
+    }
+    if (dokter !== undefined) {
+      kunjungan.dokter = dokter
+        ? typeof dokter === "string"
+          ? JSON.parse(dokter)
+          : dokter
+        : undefined;
+    }
+    if (jenisKunjungan !== undefined) kunjungan.jenisKunjungan = jenisKunjungan;
+    if (catatan !== undefined) kunjungan.catatan = catatan;
+    if (reminderBefore !== undefined) kunjungan.reminderBefore = reminderBefore;
+    if (status !== undefined) kunjungan.status = status;
 
     await kunjungan.save();
 
     // Update notification if date/time changed
-    if (tanggalKunjungan || waktuKunjungan || reminderBefore) {
-      await Notification.deleteMany({
-        userId: req.userId,
-        title: { $regex: kunjungan.judulKunjungan },
-        status: "pending",
-      });
-      await createKunjunganNotification(kunjungan);
+    if (
+      tanggalKunjungan !== undefined ||
+      waktuKunjungan !== undefined ||
+      reminderBefore !== undefined
+    ) {
+      try {
+        await Notification.deleteMany({
+          userId: req.userId,
+          title: { $regex: kunjungan.judulKunjungan },
+          status: "pending",
+        });
+        await createKunjunganNotification(kunjungan);
+      } catch (notifError) {
+        console.error("Error updating notification:", notifError);
+        // Don't fail the request if notification update fails
+      }
     }
 
     res.status(200).json({
       success: true,
-      message: "Medical visit updated successfully",
+      message: "Kunjungan berhasil diupdate",
       data: { kunjungan },
     });
   } catch (error) {
+    console.error("Error updating kunjungan:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update medical visit",
+      message: "Gagal mengupdate kunjungan",
       error: error.message,
     });
   }
@@ -197,15 +232,15 @@ exports.updateHasilKunjungan = async (req, res) => {
     if (!kunjungan) {
       return res.status(404).json({
         success: false,
-        message: "Medical visit not found",
+        message: "Kunjungan tidak ditemukan",
       });
     }
 
     kunjungan.hasilKunjungan = {
-      diagnosa,
-      tindakan,
-      resepObat,
-      catatanDokter,
+      diagnosa: diagnosa || "",
+      tindakan: tindakan || "",
+      resepObat: resepObat || "",
+      catatanDokter: catatanDokter || "",
     };
     kunjungan.status = "completed";
 
@@ -213,13 +248,14 @@ exports.updateHasilKunjungan = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Visit result updated successfully",
+      message: "Hasil kunjungan berhasil diupdate",
       data: { kunjungan },
     });
   } catch (error) {
+    console.error("Error updating hasil kunjungan:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update visit result",
+      message: "Gagal mengupdate hasil kunjungan",
       error: error.message,
     });
   }
@@ -236,26 +272,32 @@ exports.deleteKunjungan = async (req, res) => {
     if (!kunjungan) {
       return res.status(404).json({
         success: false,
-        message: "Medical visit not found",
+        message: "Kunjungan tidak ditemukan",
       });
     }
 
     // Delete related notifications
-    await Notification.deleteMany({
-      userId: req.userId,
-      title: { $regex: kunjungan.judulKunjungan },
-    });
+    try {
+      await Notification.deleteMany({
+        userId: req.userId,
+        title: { $regex: kunjungan.judulKunjungan },
+      });
+    } catch (notifError) {
+      console.error("Error deleting notifications:", notifError);
+      // Continue with deletion even if notification deletion fails
+    }
 
     await kunjungan.deleteOne();
 
     res.status(200).json({
       success: true,
-      message: "Medical visit deleted successfully",
+      message: "Kunjungan berhasil dihapus",
     });
   } catch (error) {
+    console.error("Error deleting kunjungan:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to delete medical visit",
+      message: "Gagal menghapus kunjungan",
       error: error.message,
     });
   }
@@ -265,8 +307,10 @@ exports.deleteKunjungan = async (req, res) => {
 exports.getUpcomingVisits = async (req, res) => {
   try {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const nextWeek = new Date();
     nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999);
 
     const upcomingVisits = await Kunjungan.find({
       userId: req.userId,
@@ -283,9 +327,10 @@ exports.getUpcomingVisits = async (req, res) => {
       data: { upcomingVisits },
     });
   } catch (error) {
+    console.error("Error getting upcoming visits:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to get upcoming visits",
+      message: "Gagal mendapatkan kunjungan mendatang",
       error: error.message,
     });
   }
@@ -293,23 +338,45 @@ exports.getUpcomingVisits = async (req, res) => {
 
 // Helper function to create visit notification
 async function createKunjunganNotification(kunjungan) {
-  const [hours, minutes] = kunjungan.waktuKunjungan.split(":");
-  const visitDateTime = new Date(kunjungan.tanggalKunjungan);
-  visitDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  try {
+    if (
+      !kunjungan.waktuKunjungan ||
+      !kunjungan.tanggalKunjungan ||
+      !kunjungan.lokasi
+    ) {
+      return;
+    }
 
-  // Calculate reminder time
-  const reminderTime = new Date(visitDateTime);
-  reminderTime.setHours(reminderTime.getHours() - kunjungan.reminderBefore);
+    const [hours, minutes] = kunjungan.waktuKunjungan.split(":");
+    if (!hours || !minutes) {
+      console.error("Invalid waktuKunjungan format:", kunjungan.waktuKunjungan);
+      return;
+    }
 
-  // Only create if reminder is in the future
-  if (reminderTime > new Date()) {
-    await Notification.create({
-      userId: kunjungan.userId,
-      obatId: null,
-      title: `Reminder: ${kunjungan.judulKunjungan}`,
-      message: `Jadwal kunjungan Anda ${kunjungan.reminderBefore} jam lagi di ${kunjungan.lokasi.namaRumahSakit}`,
-      scheduledTime: reminderTime,
-      type: "warning",
-    });
+    const visitDateTime = new Date(kunjungan.tanggalKunjungan);
+    visitDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    // Calculate reminder time
+    const reminderTime = new Date(visitDateTime);
+    reminderTime.setHours(
+      reminderTime.getHours() - (kunjungan.reminderBefore || 24)
+    );
+
+    // Only create if reminder is in the future
+    if (reminderTime > new Date()) {
+      await Notification.create({
+        userId: kunjungan.userId,
+        obatId: null,
+        title: `Reminder: ${kunjungan.judulKunjungan}`,
+        message: `Jadwal kunjungan Anda ${
+          kunjungan.reminderBefore || 24
+        } jam lagi di ${kunjungan.lokasi.namaRumahSakit || "rumah sakit"}`,
+        scheduledTime: reminderTime,
+        type: "warning",
+      });
+    }
+  } catch (error) {
+    console.error("Error in createKunjunganNotification:", error);
+    throw error;
   }
 }
