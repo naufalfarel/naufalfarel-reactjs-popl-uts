@@ -29,8 +29,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files (only for local development, not needed for Cloudinary)
-// Note: In production with Cloudinary, files are served from Cloudinary CDN
+// Serve uploaded files (only for local development)
+// Note: On Vercel, files are stored as base64 in MongoDB
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 }

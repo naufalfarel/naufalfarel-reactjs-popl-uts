@@ -2,7 +2,7 @@ const Obat = require("../models/Obat");
 const Notification = require("../models/Notification");
 const path = require("path");
 const fs = require("fs");
-const { uploadToCloudinary, deleteFromCloudinary, extractPublicId } = require("../Utils/cloudinary");
+const { bufferToBase64, isBase64DataUrl } = require("../Utils/cloudinary");
 
 // Create Medicine
 exports.createObat = async (req, res) => {
@@ -26,23 +26,43 @@ exports.createObat = async (req, res) => {
     // Handle file upload
     let gambarObat = null;
     if (req.file) {
+      console.log("📤 File received:", {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        hasBuffer: !!req.file.buffer,
+        hasPath: !!req.file.path,
+      });
+
       if (req.file.buffer) {
-        // Memory storage - upload to Cloudinary
+        // Memory storage - convert to base64 (Vercel)
+        console.log("📦 Converting to base64...");
         try {
-          const result = await uploadToCloudinary(req.file.buffer, 'obat');
-          gambarObat = result.secure_url;
+          gambarObat = bufferToBase64(req.file.buffer, req.file.mimetype);
+          console.log("✅ File converted to base64 successfully");
         } catch (uploadError) {
-          console.error("Error uploading to Cloudinary:", uploadError);
+          console.error("❌ Error converting to base64:", uploadError);
           return res.status(500).json({
             success: false,
-            message: "Failed to upload image",
-            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+            message: "Failed to process image",
+            error: process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production" 
+              ? uploadError.message 
+              : "Upload failed. Please try again.",
           });
         }
-      } else {
+      } else if (req.file.path) {
         // Disk storage (local development)
         gambarObat = `/uploads/obat/${req.file.filename}`;
+        console.log("📁 Using local file path:", gambarObat);
+      } else {
+        console.error("❌ File object missing both buffer and path");
+        return res.status(400).json({
+          success: false,
+          message: "Invalid file upload. File data is missing.",
+        });
       }
+    } else {
+      console.log("ℹ️ No file uploaded");
     }
 
     const obatData = {
@@ -171,21 +191,14 @@ exports.updateObat = async (req, res) => {
       });
     }
 
-    // Delete old image if new one is uploaded
-    if (req.file && obat.gambarObat) {
+    // Delete old image if new one is uploaded (only for local file system)
+    if (req.file && obat.gambarObat && !isBase64DataUrl(obat.gambarObat) && req.file.path) {
       try {
-        // Check if it's a Cloudinary URL
-        if (obat.gambarObat.includes('cloudinary.com')) {
-          const publicId = extractPublicId(obat.gambarObat);
-          if (publicId) {
-            await deleteFromCloudinary(publicId);
-          }
-        } else if (!req.file.buffer) {
-          // Local file system (only if not using Cloudinary)
-          const oldImagePath = path.join(__dirname, "..", obat.gambarObat);
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
+        // Local file system only
+        const oldImagePath = path.join(__dirname, "..", obat.gambarObat);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+          console.log("🗑️ Old local file deleted:", oldImagePath);
         }
       } catch (deleteError) {
         console.error("Error deleting old file:", deleteError);
@@ -214,22 +227,40 @@ exports.updateObat = async (req, res) => {
 
     // Handle file upload
     if (req.file) {
+      console.log("📤 File received for update:", {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        hasBuffer: !!req.file.buffer,
+        hasPath: !!req.file.path,
+      });
+
       if (req.file.buffer) {
-        // Memory storage - upload to Cloudinary
+        // Memory storage - convert to base64 (Vercel)
+        console.log("📦 Converting to base64...");
         try {
-          const result = await uploadToCloudinary(req.file.buffer, 'obat');
-          obat.gambarObat = result.secure_url;
+          obat.gambarObat = bufferToBase64(req.file.buffer, req.file.mimetype);
+          console.log("✅ File converted to base64 successfully");
         } catch (uploadError) {
-          console.error("Error uploading to Cloudinary:", uploadError);
+          console.error("❌ Error converting to base64:", uploadError);
           return res.status(500).json({
             success: false,
-            message: "Failed to upload image",
-            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+            message: "Failed to process image",
+            error: process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production"
+              ? uploadError.message
+              : "Upload failed. Please try again.",
           });
         }
-      } else {
+      } else if (req.file.path) {
         // Disk storage (local development)
         obat.gambarObat = `/uploads/obat/${req.file.filename}`;
+        console.log("📁 Using local file path:", obat.gambarObat);
+      } else {
+        console.error("❌ File object missing both buffer and path");
+        return res.status(400).json({
+          success: false,
+          message: "Invalid file upload. File data is missing.",
+        });
       }
     }
 
@@ -284,21 +315,14 @@ exports.deleteObat = async (req, res) => {
       });
     }
 
-    // Delete image file
-    if (obat.gambarObat) {
+    // Delete image file (only for local file system, base64 is in MongoDB)
+    if (obat.gambarObat && !isBase64DataUrl(obat.gambarObat)) {
       try {
-        // Check if it's a Cloudinary URL
-        if (obat.gambarObat.includes('cloudinary.com')) {
-          const publicId = extractPublicId(obat.gambarObat);
-          if (publicId) {
-            await deleteFromCloudinary(publicId);
-          }
-        } else {
-          // Local file system
-          const imagePath = path.join(__dirname, "..", obat.gambarObat);
-          if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
-          }
+        // Local file system only
+        const imagePath = path.join(__dirname, "..", obat.gambarObat);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log("🗑️ Local file deleted:", imagePath);
         }
       } catch (deleteError) {
         console.error("Error deleting file:", deleteError);

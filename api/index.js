@@ -14,8 +14,16 @@ app.use(
     credentials: true,
   })
 );
+
+// Body parser - IMPORTANT: Don't parse multipart/form-data here, let multer handle it
+// Only parse JSON and urlencoded, multer will handle file uploads
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Log file upload configuration
+console.log("📦 File Upload Configuration:");
+console.log("  VERCEL_ENV:", process.env.VERCEL_ENV || "Not Set");
+console.log("  Storage:", process.env.VERCEL === "1" || process.env.VERCEL_ENV ? "Base64 (MongoDB)" : "Local Disk");
 
 // Serve uploaded files (if using Vercel Blob Storage, adjust this)
 app.use("/uploads", express.static(path.join(__dirname, "../backend/uploads")));

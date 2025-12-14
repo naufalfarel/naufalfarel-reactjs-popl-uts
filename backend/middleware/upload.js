@@ -1,28 +1,25 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { createCloudinaryStorage } = require("../Utils/cloudinary");
 
-// Check if running on Vercel or if Cloudinary is configured
+// Check if running on Vercel
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL_ENV;
-const useCloudinary = 
-  process.env.CLOUDINARY_CLOUD_NAME && 
-  process.env.CLOUDINARY_API_KEY && 
-  process.env.CLOUDINARY_API_SECRET;
+
+// Log configuration for debugging
+console.log("📦 Upload Middleware Configuration:");
+console.log("  VERCEL:", isVercel ? "✅ Yes" : "❌ No");
+console.log("  Storage:", isVercel ? "Memory (base64)" : "Disk (local)");
 
 // Storage configuration
-// Priority: Cloudinary > Memory (Vercel) > Disk (local)
+// Vercel: Memory storage (convert to base64)
+// Local: Disk storage
 let storage;
 
-if (useCloudinary) {
-  // Use Cloudinary storage (works everywhere)
-  storage = multer.memoryStorage(); // We'll upload to Cloudinary in controller
-} else if (isVercel) {
+if (isVercel) {
   // Use memory storage for Vercel (read-only filesystem)
+  // Files will be converted to base64 and stored in MongoDB
   storage = multer.memoryStorage();
-  console.warn(
-    "⚠️ Running on Vercel without Cloudinary. File uploads will be stored in memory only."
-  );
+  console.log("📤 Using memory storage - files will be stored as base64 in MongoDB");
 } else {
   // Use disk storage for local development
   const uploadDirObat = path.join(__dirname, "../uploads/obat");
@@ -82,18 +79,27 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max file size
+    fileSize: isVercel ? 5 * 1024 * 1024 : 10 * 1024 * 1024, // 5MB for Vercel (base64), 10MB for local
+    fieldSize: isVercel ? 5 * 1024 * 1024 : 10 * 1024 * 1024, // 5MB for Vercel, 10MB for local
   },
   fileFilter: fileFilter,
+});
+
+// Log multer configuration
+console.log("📤 Multer configured with:", {
+  storage: storage.constructor.name,
+  maxFileSize: isVercel ? "5MB (base64)" : "10MB (disk)",
+  allowedTypes: ["jpeg", "jpg", "png", "gif", "webp"],
 });
 
 // Middleware to handle upload errors
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
+      const maxSize = isVercel ? "5MB" : "10MB";
       return res.status(400).json({
         success: false,
-        message: "File size too large. Maximum 5MB allowed.",
+        message: `File size too large. Maximum ${maxSize} allowed.`,
       });
     }
     return res.status(400).json({

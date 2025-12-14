@@ -1,121 +1,51 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Configure Cloudinary
-if (
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_SECRET
-) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-}
-
-// Check if Cloudinary is configured
-function isCloudinaryConfigured() {
-  return !!(
-    process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
-  );
-}
-
-// Check if Cloudinary is enabled (alias for isCloudinaryConfigured)
-function isCloudinaryEnabled() {
-  return isCloudinaryConfigured();
-}
-
-// Create Cloudinary storage for Multer
-const createCloudinaryStorage = (folder = "tabbycare") => {
-  return new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: folder,
-      allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
-      transformation: [
-        {
-          width: 1000,
-          height: 1000,
-          crop: "limit",
-          quality: "auto",
-        },
-      ],
-    },
-  });
-};
-
-// Upload buffer to Cloudinary
-const uploadToCloudinary = async (buffer, folder = "tabbycare") => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: folder,
-        allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
-        transformation: [
-          {
-            width: 1000,
-            height: 1000,
-            crop: "limit",
-            quality: "auto",
-          },
-        ],
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      }
-    );
-    uploadStream.end(buffer);
-  });
-};
-
-// Delete file from Cloudinary
-const deleteFromCloudinary = async (publicId) => {
-  try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    return result;
-  } catch (error) {
-    console.error("Error deleting from Cloudinary:", error);
-    throw error;
+// Convert buffer to base64 data URL
+const bufferToBase64 = (buffer, mimetype) => {
+  if (!buffer || !Buffer.isBuffer(buffer)) {
+    throw new Error("Invalid buffer provided");
   }
-};
-
-// Extract public ID from Cloudinary URL
-const extractPublicId = (url) => {
-  if (!url) return null;
   
-  // Cloudinary URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{version}/{public_id}.{format}
-  // or: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
-  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
-  if (match) {
-    // Remove folder prefix if present (e.g., "tabbycare/obat/..." -> "tabbycare/obat/...")
-    return match[1].replace(/\.[^.]+$/, ""); // Remove file extension
-  }
-  return null;
+  const base64 = buffer.toString('base64');
+  return `data:${mimetype};base64,${base64}`;
 };
 
-// Create uploads directory for local storage
+// Check if string is base64 data URL
+const isBase64DataUrl = (str) => {
+  if (!str || typeof str !== 'string') return false;
+  return str.startsWith('data:') && str.includes(';base64,');
+};
+
+// Extract mimetype from base64 data URL
+const extractMimetypeFromDataUrl = (dataUrl) => {
+  if (!isBase64DataUrl(dataUrl)) return null;
+  const match = dataUrl.match(/^data:([^;]+);base64,/);
+  return match ? match[1] : null;
+};
+
+// Create uploads directory for local storage (fallback for non-Vercel environments)
 const uploadDir = path.join(__dirname, "../uploads");
 const uploadDirObat = path.join(uploadDir, "obat");
 const uploadDirProgres = path.join(uploadDir, "progres");
 
 if (!fs.existsSync(uploadDirObat)) {
-  fs.mkdirSync(uploadDirObat, { recursive: true });
+  try {
+    fs.mkdirSync(uploadDirObat, { recursive: true });
+  } catch (error) {
+    // Ignore error if directory creation fails (e.g., on Vercel)
+  }
 }
 if (!fs.existsSync(uploadDirProgres)) {
-  fs.mkdirSync(uploadDirProgres, { recursive: true });
+  try {
+    fs.mkdirSync(uploadDirProgres, { recursive: true });
+  } catch (error) {
+    // Ignore error if directory creation fails (e.g., on Vercel)
+  }
 }
 
-// Local storage configuration (fallback)
+// Local storage configuration (fallback for local development)
 const localStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = req.baseUrl.includes("progres")
@@ -146,19 +76,21 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create upload middleware based on environment
-const createUploadMiddleware = (folder = "tabbycare") => {
-  const useCloudinary = isCloudinaryEnabled();
+// Create upload middleware
+// For Vercel: use memory storage and convert to base64
+// For local: use disk storage
+const isVercel = process.env.VERCEL === "1" || process.env.VERCEL_ENV;
 
-  if (useCloudinary) {
-    console.log("📸 Using Cloudinary storage");
+const createUploadMiddleware = (folder = "tabbycare") => {
+  if (isVercel) {
+    console.log("📤 Using memory storage (Vercel) - files will be stored as base64");
     return multer({
-      storage: createCloudinaryStorage(folder),
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max for base64 (to avoid MongoDB document size limits)
       fileFilter: fileFilter,
     });
   } else {
-    console.log("📁 Using local storage");
+    console.log("📁 Using local disk storage");
     return multer({
       storage: localStorage,
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
@@ -176,7 +108,7 @@ const handleUploadError = (err, req, res, next) => {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: "File size too large. Maximum 10MB allowed.",
+        message: "File size too large. Maximum 5MB allowed.",
       });
     }
     return res.status(400).json({
@@ -192,11 +124,15 @@ const handleUploadError = (err, req, res, next) => {
   next();
 };
 
-// Cleanup local file (only if not using Cloudinary)
+// Cleanup local file (only for disk storage)
 const cleanupLocalFile = (filePath) => {
-  if (!isCloudinaryEnabled() && filePath && fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-    console.log("🗑️ Local file deleted:", filePath);
+  if (filePath && !isVercel && fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath);
+      console.log("🗑️ Local file deleted:", filePath);
+    } catch (error) {
+      console.error("Error deleting local file:", error);
+    }
   }
 };
 
@@ -204,10 +140,22 @@ module.exports = {
   upload,
   handleUploadError,
   cleanupLocalFile,
-  isCloudinaryConfigured,
-  isCloudinaryEnabled,
-  createCloudinaryStorage,
-  uploadToCloudinary,
-  deleteFromCloudinary,
-  extractPublicId,
+  bufferToBase64,
+  isBase64DataUrl,
+  extractMimetypeFromDataUrl,
+  // Legacy exports for backward compatibility (will be removed in controllers)
+  uploadToCloudinary: async (buffer, mimetype) => {
+    // Convert buffer to base64 data URL
+    return {
+      secure_url: bufferToBase64(buffer, mimetype || 'image/jpeg'),
+    };
+  },
+  deleteFromCloudinary: async () => {
+    // No-op for base64 storage (data is in MongoDB)
+    return { result: 'ok' };
+  },
+  extractPublicId: (url) => {
+    // No-op for base64 storage
+    return null;
+  },
 };
