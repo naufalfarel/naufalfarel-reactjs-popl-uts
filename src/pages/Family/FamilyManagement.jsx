@@ -124,10 +124,10 @@ const FamilyManagement = () => {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
-                👨‍👩‍👧 Manajemen Keluarga
+                👨‍👩‍👧 Manajemen notifikasi Keluarga
               </h1>
               <p className="text-gray-600 mt-2">
-                Kelola anggota keluarga yang memantau kesehatan Anda
+                Atur anggota keluarga yang membantu memantau kesehatan Anda
               </p>
             </div>
             <button
@@ -135,7 +135,7 @@ const FamilyManagement = () => {
               className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition flex items-center gap-2"
             >
               <span className="text-xl">+</span>
-              Tambah Keluarga
+              Tambah
             </button>
           </div>
 
