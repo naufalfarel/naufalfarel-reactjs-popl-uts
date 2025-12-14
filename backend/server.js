@@ -7,6 +7,10 @@ const path = require("path");
 // Load environment variables
 dotenv.config();
 
+// Import logger and middleware
+const logger = require("./Utils/logger");
+const { requestLogger, errorLogger } = require("./middleware/logger");
+
 // Import routes
 const authRoutes = require("./routes/auth");
 const obatRoutes = require("./routes/obat");
@@ -29,6 +33,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request logging middleware (should be early in the chain)
+app.use(requestLogger);
+
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -36,11 +43,13 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/tabbycare")
   .then(async () => {
-    console.log("✅ MongoDB Connected");
+    logger.info("MongoDB Connected", { uri: process.env.MONGODB_URI || "mongodb://localhost:27017/tabbycare" });
     // Auto-seed edukasi content if database is empty
     await seedEdukasiData();
   })
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  .catch((err) => {
+    logger.error("MongoDB Connection Error", { error: err.message, stack: err.stack });
+  });
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -68,10 +77,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// Error handling middleware
+// Error handling middleware (use errorLogger first, then send response)
+app.use(errorLogger);
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
+  res.status(err.statusCode || 500).json({
     success: false,
     message: "Something went wrong!",
     error: process.env.NODE_ENV === "development" ? err.message : undefined,
@@ -88,8 +97,11 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 API URL: http://localhost:${PORT}`);
+  logger.info("Server started", { 
+    port: PORT, 
+    url: `http://localhost:${PORT}`,
+    environment: process.env.NODE_ENV || "development"
+  });
 
   // Setup cron jobs for notifications
   setupCronJobs();
