@@ -1,15 +1,34 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { createCloudinaryStorage } = require("../Utils/cloudinary");
 
-// Check if running on Vercel (read-only filesystem)
+// Check if running on Vercel or if Cloudinary is configured
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL_ENV;
+const useCloudinary = 
+  process.env.CLOUDINARY_CLOUD_NAME && 
+  process.env.CLOUDINARY_API_KEY && 
+  process.env.CLOUDINARY_API_SECRET;
 
-// Create uploads directory if it doesn't exist (only if not on Vercel)
-const uploadDirObat = path.join(__dirname, "../uploads/obat");
-const uploadDirProgres = path.join(__dirname, "../uploads/progres");
+// Storage configuration
+// Priority: Cloudinary > Memory (Vercel) > Disk (local)
+let storage;
 
-if (!isVercel) {
+if (useCloudinary) {
+  // Use Cloudinary storage (works everywhere)
+  storage = multer.memoryStorage(); // We'll upload to Cloudinary in controller
+} else if (isVercel) {
+  // Use memory storage for Vercel (read-only filesystem)
+  storage = multer.memoryStorage();
+  console.warn(
+    "⚠️ Running on Vercel without Cloudinary. File uploads will be stored in memory only."
+  );
+} else {
+  // Use disk storage for local development
+  const uploadDirObat = path.join(__dirname, "../uploads/obat");
+  const uploadDirProgres = path.join(__dirname, "../uploads/progres");
+
+  // Create uploads directory if it doesn't exist
   if (!fs.existsSync(uploadDirObat)) {
     try {
       fs.mkdirSync(uploadDirObat, { recursive: true });
@@ -24,32 +43,24 @@ if (!isVercel) {
       console.warn("⚠️ Could not create upload directory:", error.message);
     }
   }
-} else {
-  console.warn(
-    "⚠️ Running on Vercel - file uploads to local filesystem are not supported. Consider using Vercel Blob Storage or Cloudinary."
-  );
-}
 
-// Storage configuration
-// Use memory storage for Vercel (read-only filesystem)
-const storage = isVercel
-  ? multer.memoryStorage() // Store in memory for Vercel
-  : multer.diskStorage({
-      destination: function (req, file, cb) {
-        // Determine upload directory based on route
-        const uploadDir = req.baseUrl.includes("progres")
-          ? uploadDirProgres
-          : uploadDirObat;
-        cb(null, uploadDir);
-      },
-      filename: function (req, file, cb) {
-        // Generate unique filename
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname);
-        const prefix = req.baseUrl.includes("progres") ? "progres" : "obat";
-        cb(null, prefix + "-" + uniqueSuffix + ext);
-      },
-    });
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      // Determine upload directory based on route
+      const uploadDir = req.baseUrl.includes("progres")
+        ? uploadDirProgres
+        : uploadDirObat;
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      // Generate unique filename
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      const prefix = req.baseUrl.includes("progres") ? "progres" : "obat";
+      cb(null, prefix + "-" + uniqueSuffix + ext);
+    },
+  });
+}
 
 // File filter
 const fileFilter = (req, file, cb) => {

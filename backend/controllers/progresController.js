@@ -1,6 +1,7 @@
 const Progres = require("../models/Progres");
 const path = require("path");
 const fs = require("fs");
+const { uploadToCloudinary, deleteFromCloudinary, extractPublicId } = require("../Utils/cloudinary");
 
 // Create Progress Entry
 exports.createProgres = async (req, res) => {
@@ -17,6 +18,28 @@ exports.createProgres = async (req, res) => {
       kepatuhanObat,
     } = req.body;
 
+    // Handle file upload
+    let fotoProgres = null;
+    if (req.file) {
+      if (req.file.buffer) {
+        // Memory storage - upload to Cloudinary
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'progres');
+          fotoProgres = result.secure_url;
+        } catch (uploadError) {
+          console.error("Error uploading to Cloudinary:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload image",
+            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+          });
+        }
+      } else {
+        // Disk storage (local development)
+        fotoProgres = `/uploads/progres/${req.file.filename}`;
+      }
+    }
+
     const progresData = {
       userId: req.userId,
       tanggal: tanggal || new Date(),
@@ -32,7 +55,7 @@ exports.createProgres = async (req, res) => {
       catatanHarian,
       mood,
       kepatuhanObat,
-      fotoProgres: req.file ? `/uploads/progres/${req.file.filename}` : null,
+      fotoProgres,
     };
 
     const progres = await Progres.create(progresData);
@@ -142,9 +165,23 @@ exports.updateProgres = async (req, res) => {
 
     // Delete old image if new one uploaded
     if (req.file && progres.fotoProgres) {
-      const oldImagePath = path.join(__dirname, "..", progres.fotoProgres);
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
+      try {
+        // Check if it's a Cloudinary URL
+        if (progres.fotoProgres.includes('cloudinary.com')) {
+          const publicId = extractPublicId(progres.fotoProgres);
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+        } else {
+          // Local file system
+          const oldImagePath = path.join(__dirname, "..", progres.fotoProgres);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        }
+      } catch (deleteError) {
+        console.error("Error deleting old file:", deleteError);
+        // Continue with update even if deletion fails
       }
     }
 
@@ -167,7 +204,23 @@ exports.updateProgres = async (req, res) => {
       kepatuhanObat !== undefined ? kepatuhanObat : progres.kepatuhanObat;
 
     if (req.file) {
-      progres.fotoProgres = `/uploads/progres/${req.file.filename}`;
+      if (req.file.buffer) {
+        // Memory storage - upload to Cloudinary
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'progres');
+          progres.fotoProgres = result.secure_url;
+        } catch (uploadError) {
+          console.error("Error uploading to Cloudinary:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload image",
+            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+          });
+        }
+      } else {
+        // Disk storage (local development)
+        progres.fotoProgres = `/uploads/progres/${req.file.filename}`;
+      }
     }
 
     await progres.save();
@@ -206,9 +259,23 @@ exports.deleteProgres = async (req, res) => {
 
     // Delete image
     if (progres.fotoProgres) {
-      const imagePath = path.join(__dirname, "..", progres.fotoProgres);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      try {
+        // Check if it's a Cloudinary URL
+        if (progres.fotoProgres.includes('cloudinary.com')) {
+          const publicId = extractPublicId(progres.fotoProgres);
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+        } else {
+          // Local file system
+          const imagePath = path.join(__dirname, "..", progres.fotoProgres);
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          }
+        }
+      } catch (deleteError) {
+        console.error("Error deleting file:", deleteError);
+        // Continue with deletion even if file delete fails
       }
     }
 

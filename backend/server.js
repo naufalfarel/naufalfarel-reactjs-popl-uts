@@ -29,8 +29,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Serve uploaded files (only for local development, not needed for Cloudinary)
+// Note: In production with Cloudinary, files are served from Cloudinary CDN
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+}
 
 // Database connection
 mongoose

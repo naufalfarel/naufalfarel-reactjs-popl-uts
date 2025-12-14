@@ -2,6 +2,7 @@ const Obat = require("../models/Obat");
 const Notification = require("../models/Notification");
 const path = require("path");
 const fs = require("fs");
+const { uploadToCloudinary, deleteFromCloudinary, extractPublicId } = require("../Utils/cloudinary");
 
 // Create Medicine
 exports.createObat = async (req, res) => {
@@ -22,16 +23,22 @@ exports.createObat = async (req, res) => {
         ? JSON.parse(waktuKonsumsi)
         : waktuKonsumsi;
 
-    // Handle file upload (memory storage for Vercel, disk storage for local)
+    // Handle file upload
     let gambarObat = null;
     if (req.file) {
       if (req.file.buffer) {
-        // Memory storage (Vercel) - convert to base64 or skip for now
-        // TODO: Upload to Vercel Blob Storage or Cloudinary
-        console.warn(
-          "⚠️ File upload detected but filesystem is read-only. File not saved. Consider using Vercel Blob Storage."
-        );
-        gambarObat = null; // Skip file upload for now on Vercel
+        // Memory storage - upload to Cloudinary
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'obat');
+          gambarObat = result.secure_url;
+        } catch (uploadError) {
+          console.error("Error uploading to Cloudinary:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload image",
+            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+          });
+        }
       } else {
         // Disk storage (local development)
         gambarObat = `/uploads/obat/${req.file.filename}`;
@@ -164,15 +171,25 @@ exports.updateObat = async (req, res) => {
       });
     }
 
-    // Delete old image if new one is uploaded (only for disk storage)
-    if (req.file && obat.gambarObat && !req.file.buffer) {
+    // Delete old image if new one is uploaded
+    if (req.file && obat.gambarObat) {
       try {
-        const oldImagePath = path.join(__dirname, "..", obat.gambarObat);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+        // Check if it's a Cloudinary URL
+        if (obat.gambarObat.includes('cloudinary.com')) {
+          const publicId = extractPublicId(obat.gambarObat);
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+        } else if (!req.file.buffer) {
+          // Local file system (only if not using Cloudinary)
+          const oldImagePath = path.join(__dirname, "..", obat.gambarObat);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
         }
-      } catch (unlinkError) {
-        console.error("Error deleting old file:", unlinkError);
+      } catch (deleteError) {
+        console.error("Error deleting old file:", deleteError);
+        // Continue with update even if deletion fails
       }
     }
 
@@ -195,14 +212,21 @@ exports.updateObat = async (req, res) => {
     obat.reminderActive =
       reminderActive !== undefined ? reminderActive : obat.reminderActive;
 
-    // Handle file upload (memory storage for Vercel, disk storage for local)
+    // Handle file upload
     if (req.file) {
       if (req.file.buffer) {
-        // Memory storage (Vercel) - skip for now
-        console.warn(
-          "⚠️ File upload detected but filesystem is read-only. File not saved."
-        );
-        // Keep existing image or set to null
+        // Memory storage - upload to Cloudinary
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, 'obat');
+          obat.gambarObat = result.secure_url;
+        } catch (uploadError) {
+          console.error("Error uploading to Cloudinary:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload image",
+            error: process.env.NODE_ENV === "development" ? uploadError.message : "Upload failed",
+          });
+        }
       } else {
         // Disk storage (local development)
         obat.gambarObat = `/uploads/obat/${req.file.filename}`;
@@ -260,15 +284,24 @@ exports.deleteObat = async (req, res) => {
       });
     }
 
-    // Delete image file (only for disk storage, skip on Vercel)
-    if (obat.gambarObat && process.env.VERCEL !== "1") {
+    // Delete image file
+    if (obat.gambarObat) {
       try {
-        const imagePath = path.join(__dirname, "..", obat.gambarObat);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
+        // Check if it's a Cloudinary URL
+        if (obat.gambarObat.includes('cloudinary.com')) {
+          const publicId = extractPublicId(obat.gambarObat);
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+        } else {
+          // Local file system
+          const imagePath = path.join(__dirname, "..", obat.gambarObat);
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+          }
         }
-      } catch (unlinkError) {
-        console.error("Error deleting file:", unlinkError);
+      } catch (deleteError) {
+        console.error("Error deleting file:", deleteError);
         // Continue with deletion even if file delete fails
       }
     }
