@@ -22,7 +22,6 @@ router.put("/mark-all-read", notificationController.markAllAsRead);
 router.delete("/:id", notificationController.deleteNotification);
 
 // Email notifications (manual triggers for testing)
-router.post("/test-email", notificationController.sendTestNotification);
 router.post("/send-daily", notificationController.sendDailyReminders);
 router.post("/check-missed", notificationController.checkMissedMedications);
 router.post("/weekly-summary", notificationController.sendWeeklySummaryEmail);

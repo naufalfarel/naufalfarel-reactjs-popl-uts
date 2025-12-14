@@ -72,37 +72,6 @@ const NotificationList = () => {
     }
   };
 
-  const handleSendTestEmail = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      setLoading(true);
-
-      const response = await axios.post(
-        `${API_URL}/notifications/test-email`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data.success) {
-        setSuccess(
-          `✅ Test email berhasil dikirim ke: ${response.data.data.recipients.join(
-            ", "
-          )}`
-        );
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Gagal mengirim test email");
-    } finally {
-      setLoading(false);
-      setTimeout(() => {
-        setSuccess("");
-        setError("");
-      }, 5000);
-    }
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
       day: "numeric",
@@ -165,13 +134,7 @@ const NotificationList = () => {
                 onClick={() => navigate("/family")}
                 className="bg-white border border-gray-200 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center gap-2"
               >
-                👨‍👩‍👧 Kelola Keluarga
-              </button>
-              <button
-                onClick={handleSendTestEmail}
-                className="bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center gap-2"
-              >
-                🧪 Kirim Test Email
+                👨‍👩‍👧 Kelola notifikasi Keluarga
               </button>
             </div>
           </div>

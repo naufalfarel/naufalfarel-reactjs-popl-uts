@@ -8,44 +8,8 @@ const {
   sendMedicationReminder,
   sendMissedMedicationAlert,
   sendWeeklySummary,
-  sendTestEmail,
 } = require("../utils/emailService");
 const cron = require("node-cron");
-
-// Send Test Notification Email
-exports.sendTestNotification = async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-
-    // Get family emails
-    const familyMembers = await Family.find({
-      patientId: req.userId,
-      isActive: true,
-      emailNotifications: true,
-    });
-
-    const familyEmails = familyMembers.map((f) => f.email);
-
-    // Add test email
-    const testEmails = [user.email, "naufalfaerel@gmail.com", ...familyEmails];
-
-    await sendTestEmail(testEmails.join(","));
-
-    res.status(200).json({
-      success: true,
-      message: "Test email sent successfully",
-      data: {
-        recipients: testEmails,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to send test email",
-      error: error.message,
-    });
-  }
-};
 
 // Mark Medicine as Taken
 exports.markAsTaken = async (req, res) => {
