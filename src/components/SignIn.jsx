@@ -63,10 +63,18 @@ const SignIn = () => {
       }
     } catch (err) {
       console.error("Registration error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Registration failed. Email mungkin sudah terdaftar."
-      );
+      if (err.response?.status === 503) {
+        setError("Database connection error. Please try again later.");
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.message || "Invalid input. Please check your information.");
+      } else if (err.code === "ECONNREFUSED" || err.message.includes("Network Error")) {
+        setError("Cannot connect to server. Please check if the server is running.");
+      } else {
+        setError(
+          err.response?.data?.message ||
+            "Registration failed. Email mungkin sudah terdaftar."
+        );
+      }
     } finally {
       setLoading(false);
     }

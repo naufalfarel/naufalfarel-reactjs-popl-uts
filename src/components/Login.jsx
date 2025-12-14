@@ -20,15 +20,35 @@ const Login = () => {
     });
   };
 
+  const checkDatabaseStatus = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/health`);
+      return response.data.database?.connected || false;
+    } catch (err) {
+      console.error("Health check error:", err);
+      return false;
+    }
+  };
+
   const handleLogin = async () => {
     setError("");
     setLoading(true);
 
     try {
+      // Check database status first
+      const isDbConnected = await checkDatabaseStatus();
+      if (!isDbConnected) {
+        setError("Database tidak terhubung. Silakan coba lagi dalam beberapa saat atau hubungi administrator.");
+        setLoading(false);
+        return;
+      }
+
       // Call login API
       const response = await axios.post(`${API_URL}/auth/login`, {
         email: formData.email,
         password: formData.password,
+      }, {
+        timeout: 10000, // 10 seconds timeout
       });
 
       if (response.data.success) {
@@ -39,14 +59,38 @@ const Login = () => {
         // Redirect to dashboard
         navigate("/dashboard");
       } else {
-        setError(response.data.message || "Login failed");
+        setError(response.data.message || "Login gagal. Silakan coba lagi.");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Login failed. Please check your credentials."
-      );
+      
+      // Handle different error types
+      if (!err.response) {
+        // No response from server
+        if (err.code === "ECONNREFUSED" || err.code === "ERR_NETWORK") {
+          setError("Tidak dapat terhubung ke server. Pastikan server backend sedang berjalan.");
+        } else if (err.code === "ECONNABORTED" || err.message.includes("timeout")) {
+          setError("Request timeout. Server terlalu lama merespons. Silakan coba lagi.");
+        } else {
+          setError("Terjadi kesalahan koneksi. Silakan coba lagi.");
+        }
+      } else {
+        // Server responded with error
+        const status = err.response.status;
+        const message = err.response.data?.message || "";
+        
+        if (status === 503) {
+          setError("Database tidak terhubung. Silakan tunggu beberapa saat dan coba lagi.");
+        } else if (status === 400) {
+          setError(message || "Input tidak valid. Periksa email dan password Anda.");
+        } else if (status === 401) {
+          setError(message || "Email atau password salah. Silakan periksa kembali.");
+        } else if (status === 500) {
+          setError("Terjadi kesalahan pada server. Silakan coba lagi nanti.");
+        } else {
+          setError(message || "Login gagal. Silakan coba lagi.");
+        }
+      }
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,106 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const {
-  createCloudinaryStorage,
-  isCloudinaryConfigured,
-} = require("../Utils/cloudinary");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Configure Cloudinary
+if (
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 // Check if Cloudinary is configured
-const isCloudinaryEnabled = () => {
+function isCloudinaryConfigured() {
+  return !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+}
+
+// Check if Cloudinary is enabled (alias for isCloudinaryConfigured)
+function isCloudinaryEnabled() {
   return isCloudinaryConfigured();
+}
+
+// Create Cloudinary storage for Multer
+const createCloudinaryStorage = (folder = "tabbycare") => {
+  return new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: folder,
+      allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+      transformation: [
+        {
+          width: 1000,
+          height: 1000,
+          crop: "limit",
+          quality: "auto",
+        },
+      ],
+    },
+  });
+};
+
+// Upload buffer to Cloudinary
+const uploadToCloudinary = async (buffer, folder = "tabbycare") => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder,
+        allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+        transformation: [
+          {
+            width: 1000,
+            height: 1000,
+            crop: "limit",
+            quality: "auto",
+          },
+        ],
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
+
+// Delete file from Cloudinary
+const deleteFromCloudinary = async (publicId) => {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result;
+  } catch (error) {
+    console.error("Error deleting from Cloudinary:", error);
+    throw error;
+  }
+};
+
+// Extract public ID from Cloudinary URL
+const extractPublicId = (url) => {
+  if (!url) return null;
+  
+  // Cloudinary URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{version}/{public_id}.{format}
+  // or: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+  if (match) {
+    // Remove folder prefix if present (e.g., "tabbycare/obat/..." -> "tabbycare/obat/...")
+    return match[1].replace(/\.[^.]+$/, ""); // Remove file extension
+  }
+  return null;
 };
 
 // Create uploads directory for local storage
@@ -112,5 +204,10 @@ module.exports = {
   upload,
   handleUploadError,
   cleanupLocalFile,
-  isCloudinaryConfigured: isCloudinaryEnabled,
+  isCloudinaryConfigured,
+  isCloudinaryEnabled,
+  createCloudinaryStorage,
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  extractPublicId,
 };
