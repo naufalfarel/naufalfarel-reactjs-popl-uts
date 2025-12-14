@@ -111,16 +111,15 @@ exports.getPopularEdukasi = async (req, res) => {
   }
 };
 
-// Seed initial educational content (for admin)
-exports.seedEdukasi = async (req, res) => {
-  try {
-    const initialContent = [
-      {
-        judul: "Apa itu Tuberkulosis (TBC)?",
-        kategori: "tentang_tbc",
-        ringkasan:
-          "Tuberkulosis adalah penyakit menular yang disebabkan oleh bakteri Mycobacterium tuberculosis. Pelajari lebih lanjut tentang penyakit ini.",
-        konten: `# Apa itu Tuberkulosis (TBC)?
+// Helper function to get initial content
+const getInitialContent = () => {
+  return [
+    {
+      judul: "Apa itu Tuberkulosis (TBC)?",
+      kategori: "tentang_tbc",
+      ringkasan:
+        "Tuberkulosis adalah penyakit menular yang disebabkan oleh bakteri Mycobacterium tuberculosis. Pelajari lebih lanjut tentang penyakit ini.",
+      konten: `# Apa itu Tuberkulosis (TBC)?
 
 Tuberkulosis (TBC) adalah penyakit menular yang disebabkan oleh bakteri **Mycobacterium tuberculosis**. Penyakit ini biasanya menyerang paru-paru, tetapi juga dapat menyerang organ tubuh lainnya seperti tulang, kelenjar getah bening, dan otak.
 
@@ -170,15 +169,15 @@ TBC dapat disembuhkan dengan pengobatan yang tepat dan teratur selama **6-9 bula
 - Pola hidup sehat
 - Ventilasi udara yang baik
 - Etika batuk yang benar`,
-        tags: ["tbc", "pengenalan", "gejala", "pencegahan"],
-        sumberReferensi: "WHO, Kementerian Kesehatan RI",
-      },
-      {
-        judul: "Pentingnya Kepatuhan Minum Obat TBC",
-        kategori: "pengobatan",
-        ringkasan:
-          "Kepatuhan minum obat TBC adalah kunci kesembuhan dan mencegah resistensi obat. Pelajari strategi untuk tetap konsisten.",
-        konten: `# Pentingnya Kepatuhan Minum Obat TBC
+      tags: ["tbc", "pengenalan", "gejala", "pencegahan"],
+      sumberReferensi: "WHO, Kementerian Kesehatan RI",
+    },
+    {
+      judul: "Pentingnya Kepatuhan Minum Obat TBC",
+      kategori: "pengobatan",
+      ringkasan:
+        "Kepatuhan minum obat TBC adalah kunci kesembuhan dan mencegah resistensi obat. Pelajari strategi untuk tetap konsisten.",
+      konten: `# Pentingnya Kepatuhan Minum Obat TBC
 
 Pengobatan TBC memerlukan komitmen jangka panjang, biasanya **6-9 bulan**. Kepatuhan minum obat sangat penting untuk kesembuhan total.
 
@@ -241,15 +240,15 @@ Pengobatan yang tepat dan teratur:
 - Jangan berhenti minum obat sendiri
 - Segera hubungi dokter atau fasilitas kesehatan
 - Catat efek samping yang dialami`,
-        tags: ["pengobatan", "kepatuhan", "tips", "strategi"],
-        sumberReferensi: "WHO Guidelines for TB Treatment",
-      },
-      {
-        judul: "Nutrisi yang Tepat untuk Pasien TBC",
-        kategori: "nutrisi",
-        ringkasan:
-          "Nutrisi yang baik membantu mempercepat penyembuhan TBC dan meningkatkan daya tahan tubuh. Panduan lengkap nutrisi untuk pasien TBC.",
-        konten: `# Nutrisi yang Tepat untuk Pasien TBC
+      tags: ["pengobatan", "kepatuhan", "tips", "strategi"],
+      sumberReferensi: "WHO Guidelines for TB Treatment",
+    },
+    {
+      judul: "Nutrisi yang Tepat untuk Pasien TBC",
+      kategori: "nutrisi",
+      ringkasan:
+        "Nutrisi yang baik membantu mempercepat penyembuhan TBC dan meningkatkan daya tahan tubuh. Panduan lengkap nutrisi untuk pasien TBC.",
+      konten: `# Nutrisi yang Tepat untuk Pasien TBC
 
 Nutrisi yang baik sangat penting dalam proses penyembuhan TBC. Tubuh membutuhkan nutrisi ekstra untuk melawan infeksi dan memperbaiki jaringan yang rusak.
 
@@ -363,15 +362,15 @@ Mendukung penyerapan vitamin:
 - Sesuaikan porsi dengan kondisi tubuh
 - Pantau berat badan secara rutin
 - Jangan diet ketat saat pengobatan TBC`,
-        tags: ["nutrisi", "makanan", "vitamin", "diet", "kesehatan"],
-        sumberReferensi: "WHO Nutrition Guidelines for TB Patients",
-      },
-      {
-        judul: "Aktivitas Fisik untuk Pasien TBC",
-        kategori: "gaya_hidup",
-        ringkasan:
-          "Olahraga ringan dapat membantu pemulihan TBC dan meningkatkan kualitas hidup. Panduan lengkap aktivitas fisik untuk pasien TBC.",
-        konten: `# Aktivitas Fisik untuk Pasien TBC
+      tags: ["nutrisi", "makanan", "vitamin", "diet", "kesehatan"],
+      sumberReferensi: "WHO Nutrition Guidelines for TB Patients",
+    },
+    {
+      judul: "Aktivitas Fisik untuk Pasien TBC",
+      kategori: "gaya_hidup",
+      ringkasan:
+        "Olahraga ringan dapat membantu pemulihan TBC dan meningkatkan kualitas hidup. Panduan lengkap aktivitas fisik untuk pasien TBC.",
+      konten: `# Aktivitas Fisik untuk Pasien TBC
 
 Aktivitas fisik yang tepat dapat membantu proses penyembuhan TBC dan meningkatkan kualitas hidup secara keseluruhan.
 
@@ -502,15 +501,15 @@ Aktivitas fisik yang tepat dapat membantu proses penyembuhan TBC dan meningkatka
 - **Setelah Sembuh**: Dapat meningkatkan intensitas dengan konsultasi dokter
 
 Ingat: **Konsultasikan selalu dengan dokter** sebelum memulai atau mengubah program olahraga!`,
-        tags: ["olahraga", "aktivitas", "pemulihan", "kebugaran", "gaya_hidup"],
-        sumberReferensi: "WHO Physical Activity Guidelines",
-      },
-      {
-        judul: "Cara Mencegah Penularan TBC",
-        kategori: "pencegahan",
-        ringkasan:
-          "Langkah-langkah penting untuk mencegah penularan TBC ke orang lain. Lindungi keluarga dan masyarakat dengan langkah pencegahan yang tepat.",
-        konten: `# Cara Mencegah Penularan TBC
+      tags: ["olahraga", "aktivitas", "pemulihan", "kebugaran", "gaya_hidup"],
+      sumberReferensi: "WHO Physical Activity Guidelines",
+    },
+    {
+      judul: "Cara Mencegah Penularan TBC",
+      kategori: "pencegahan",
+      ringkasan:
+        "Langkah-langkah penting untuk mencegah penularan TBC ke orang lain. Lindungi keluarga dan masyarakat dengan langkah pencegahan yang tepat.",
+      konten: `# Cara Mencegah Penularan TBC
 
 Mencegah penularan TBC sangat penting untuk melindungi keluarga dan orang-orang di sekitar Anda. Dengan langkah pencegahan yang tepat, risiko penularan dapat diminimalkan.
 
@@ -663,15 +662,15 @@ Mencegah penularan TBC sangat penting untuk melindungi keluarga dan orang-orang 
 ⚠️ **Penting**: Meskipun risiko penularan menurun setelah 2-3 minggu, **tetap selesaikan pengobatan lengkap** untuk mencegah kambuh dan resistensi obat.
 
 💡 **Ingat**: Pencegahan penularan adalah tanggung jawab bersama. Dengan langkah yang tepat, kita dapat melindungi orang yang kita cintai.`,
-        tags: ["pencegahan", "penularan", "keluarga", "masker", "kebersihan"],
-        sumberReferensi: "WHO TB Prevention Guidelines, Kemenkes RI",
-      },
-      {
-        judul: "Tips Hidup Sehat untuk Pasien TBC",
-        kategori: "tips_kesehatan",
-        ringkasan:
-          "Panduan lengkap tips hidup sehat untuk mendukung proses penyembuhan TBC dan meningkatkan kualitas hidup.",
-        konten: `# Tips Hidup Sehat untuk Pasien TBC
+      tags: ["pencegahan", "penularan", "keluarga", "masker", "kebersihan"],
+      sumberReferensi: "WHO TB Prevention Guidelines, Kemenkes RI",
+    },
+    {
+      judul: "Tips Hidup Sehat untuk Pasien TBC",
+      kategori: "tips_kesehatan",
+      ringkasan:
+        "Panduan lengkap tips hidup sehat untuk mendukung proses penyembuhan TBC dan meningkatkan kualitas hidup.",
+      konten: `# Tips Hidup Sehat untuk Pasien TBC
 
 Hidup sehat adalah kunci penting dalam proses penyembuhan TBC. Berikut panduan lengkap tips hidup sehat yang dapat Anda terapkan.
 
@@ -857,15 +856,15 @@ Ingat:
 - **Kesembuhan adalah mungkin**
 
 Dengan menerapkan tips hidup sehat ini, Anda dapat mendukung proses penyembuhan dan meningkatkan kualitas hidup secara keseluruhan.`,
-        tags: ["tips_kesehatan", "gaya_hidup", "kesehatan", "rutinitas"],
-        sumberReferensi: "WHO Healthy Lifestyle Guidelines",
-      },
-      {
-        judul: "Infografis: Tahapan Pengobatan TBC",
-        kategori: "pengobatan",
-        ringkasan:
-          "Panduan visual tahapan pengobatan TBC dari diagnosis hingga kesembuhan. Infografis lengkap untuk memahami perjalanan pengobatan.",
-        konten: `# Infografis: Tahapan Pengobatan TBC
+      tags: ["tips_kesehatan", "gaya_hidup", "kesehatan", "rutinitas"],
+      sumberReferensi: "WHO Healthy Lifestyle Guidelines",
+    },
+    {
+      judul: "Infografis: Tahapan Pengobatan TBC",
+      kategori: "pengobatan",
+      ringkasan:
+        "Panduan visual tahapan pengobatan TBC dari diagnosis hingga kesembuhan. Infografis lengkap untuk memahami perjalanan pengobatan.",
+      konten: `# Infografis: Tahapan Pengobatan TBC
 
 Panduan visual lengkap tentang tahapan pengobatan TBC dari diagnosis hingga kesembuhan.
 
@@ -1016,15 +1015,15 @@ Dengan pengobatan yang tepat dan teratur, **TBC dapat disembuhkan**. Kunci utama
 - ✅ **Kepatuhan**
 
 Ingat: **Setiap hari minum obat adalah langkah menuju kesembuhan!**`,
-        tags: ["pengobatan", "infografis", "tahapan", "timeline"],
-        sumberReferensi: "WHO TB Treatment Guidelines",
-      },
-      {
-        judul: "Mengenal Gejala dan Tanda TBC",
-        kategori: "tentang_tbc",
-        ringkasan:
-          "Panduan lengkap mengenali gejala dan tanda-tanda TBC. Deteksi dini penting untuk pengobatan yang efektif.",
-        konten: `# Mengenal Gejala dan Tanda TBC
+      tags: ["pengobatan", "infografis", "tahapan", "timeline"],
+      sumberReferensi: "WHO TB Treatment Guidelines",
+    },
+    {
+      judul: "Mengenal Gejala dan Tanda TBC",
+      kategori: "tentang_tbc",
+      ringkasan:
+        "Panduan lengkap mengenali gejala dan tanda-tanda TBC. Deteksi dini penting untuk pengobatan yang efektif.",
+      konten: `# Mengenal Gejala dan Tanda TBC
 
 Deteksi dini gejala TBC sangat penting untuk pengobatan yang efektif. Kenali gejala dan tanda-tandanya sejak awal.
 
@@ -1200,15 +1199,15 @@ Mengenali gejala TBC sejak dini adalah langkah penting untuk:
 - ✅ Mencegah penularan
 
 **Ingat**: Jika mengalami gejala yang mencurigakan, segera konsultasi ke fasilitas kesehatan terdekat!`,
-        tags: ["tentang_tbc", "gejala", "deteksi", "diagnosis"],
-        sumberReferensi: "WHO TB Symptoms Guidelines",
-      },
-      {
-        judul: "Efek Samping Obat TBC dan Cara Mengatasinya",
-        kategori: "pengobatan",
-        ringkasan:
-          "Memahami efek samping obat TBC dan cara mengatasinya dengan tepat. Panduan lengkap untuk mengelola efek samping selama pengobatan.",
-        konten: `# Efek Samping Obat TBC dan Cara Mengatasinya
+      tags: ["tentang_tbc", "gejala", "deteksi", "diagnosis"],
+      sumberReferensi: "WHO TB Symptoms Guidelines",
+    },
+    {
+      judul: "Efek Samping Obat TBC dan Cara Mengatasinya",
+      kategori: "pengobatan",
+      ringkasan:
+        "Memahami efek samping obat TBC dan cara mengatasinya dengan tepat. Panduan lengkap untuk mengelola efek samping selama pengobatan.",
+      konten: `# Efek Samping Obat TBC dan Cara Mengatasinya
 
 Memahami efek samping obat TBC sangat penting untuk keberhasilan pengobatan. Dengan pengetahuan yang tepat, Anda dapat mengelola efek samping dengan baik.
 
@@ -1426,15 +1425,15 @@ Efek samping obat TBC adalah hal yang wajar, tetapi dapat dikelola dengan baik. 
 - ✅ Menerapkan tips mengatasi efek samping
 
 **Ingat**: Efek samping biasanya akan berkurang setelah beberapa minggu pengobatan. Tetap sabar dan konsisten dalam pengobatan!`,
-        tags: ["pengobatan", "efek_samping", "obat", "tips"],
-        sumberReferensi: "WHO TB Drug Side Effects Guidelines",
-      },
-      {
-        judul: "Resistensi Obat TBC: Penyebab dan Pencegahan",
-        kategori: "pengobatan",
-        ringkasan:
-          "Memahami resistensi obat TBC, penyebabnya, dan cara mencegahnya. Informasi penting untuk kesembuhan yang berhasil.",
-        konten: `# Resistensi Obat TBC: Penyebab dan Pencegahan
+      tags: ["pengobatan", "efek_samping", "obat", "tips"],
+      sumberReferensi: "WHO TB Drug Side Effects Guidelines",
+    },
+    {
+      judul: "Resistensi Obat TBC: Penyebab dan Pencegahan",
+      kategori: "pengobatan",
+      ringkasan:
+        "Memahami resistensi obat TBC, penyebabnya, dan cara mencegahnya. Informasi penting untuk kesembuhan yang berhasil.",
+      konten: `# Resistensi Obat TBC: Penyebab dan Pencegahan
 
 Resistensi obat TBC adalah masalah serius yang dapat membuat pengobatan menjadi lebih sulit dan lama. Memahami penyebab dan cara mencegahnya sangat penting.
 
@@ -1617,15 +1616,15 @@ Resistensi obat TBC adalah masalah serius yang dapat dicegah. Kunci pencegahanny
 - ✅ **Pencegahan penularan**
 
 **Ingat**: Setiap dosis yang terlewat meningkatkan risiko resistensi. Kepatuhan adalah kunci kesembuhan!`,
-        tags: ["pengobatan", "resistensi_obat", "mdr_tb", "pencegahan"],
-        sumberReferensi: "WHO MDR-TB Guidelines",
-      },
-      {
-        judul: "Menu Sehat Harian untuk Pasien TBC",
-        kategori: "nutrisi",
-        ringkasan:
-          "Panduan lengkap menu sehat harian untuk pasien TBC. Contoh menu praktis dan mudah dibuat untuk mendukung penyembuhan.",
-        konten: `# Menu Sehat Harian untuk Pasien TBC
+      tags: ["pengobatan", "resistensi_obat", "mdr_tb", "pencegahan"],
+      sumberReferensi: "WHO MDR-TB Guidelines",
+    },
+    {
+      judul: "Menu Sehat Harian untuk Pasien TBC",
+      kategori: "nutrisi",
+      ringkasan:
+        "Panduan lengkap menu sehat harian untuk pasien TBC. Contoh menu praktis dan mudah dibuat untuk mendukung penyembuhan.",
+      konten: `# Menu Sehat Harian untuk Pasien TBC
 
 Menu sehat harian sangat penting untuk mendukung proses penyembuhan TBC. Berikut panduan lengkap menu praktis yang mudah dibuat.
 
@@ -1865,15 +1864,15 @@ Menu sehat harian adalah bagian penting dari pengobatan TBC. Dengan menu yang te
 - ✅ Mempercepat pemulihan
 
 **Ingat**: Konsultasi dengan ahli gizi jika memungkinkan untuk menu yang lebih personal!`,
-        tags: ["nutrisi", "menu", "makanan", "diet", "resep"],
-        sumberReferensi: "WHO Nutrition Guidelines, Kemenkes RI",
-      },
-      {
-        judul: "Mengelola Stres dan Kesehatan Mental saat Pengobatan TBC",
-        kategori: "gaya_hidup",
-        ringkasan:
-          "Panduan lengkap mengelola stres dan menjaga kesehatan mental selama pengobatan TBC. Tips praktis untuk kesejahteraan emosional.",
-        konten: `# Mengelola Stres dan Kesehatan Mental saat Pengobatan TBC
+      tags: ["nutrisi", "menu", "makanan", "diet", "resep"],
+      sumberReferensi: "WHO Nutrition Guidelines, Kemenkes RI",
+    },
+    {
+      judul: "Mengelola Stres dan Kesehatan Mental saat Pengobatan TBC",
+      kategori: "gaya_hidup",
+      ringkasan:
+        "Panduan lengkap mengelola stres dan menjaga kesehatan mental selama pengobatan TBC. Tips praktis untuk kesejahteraan emosional.",
+      konten: `# Mengelola Stres dan Kesehatan Mental saat Pengobatan TBC
 
 Pengobatan TBC tidak hanya mempengaruhi fisik, tetapi juga kesehatan mental. Mengelola stres dan menjaga kesehatan mental sangat penting untuk kesembuhan.
 
@@ -2121,21 +2120,15 @@ Kesehatan mental sama pentingnya dengan kesehatan fisik dalam pengobatan TBC. De
 - ✅ Meningkatkan kesejahteraan secara keseluruhan
 
 **Ingat**: Tidak apa-apa untuk merasa sedih atau cemas. Yang penting adalah bagaimana kita mengelolanya. Jangan ragu untuk mencari bantuan jika diperlukan!`,
-        tags: [
-          "gaya_hidup",
-          "kesehatan_mental",
-          "stres",
-          "depresi",
-          "kecemasan",
-        ],
-        sumberReferensi: "WHO Mental Health Guidelines",
-      },
-      {
-        judul: "Vaksinasi BCG: Perlindungan terhadap TBC",
-        kategori: "pencegahan",
-        ringkasan:
-          "Informasi lengkap tentang vaksinasi BCG untuk melindungi dari TBC. Pentingnya vaksinasi dan siapa yang perlu mendapatkannya.",
-        konten: `# Vaksinasi BCG: Perlindungan terhadap TBC
+      tags: ["gaya_hidup", "kesehatan_mental", "stres", "depresi", "kecemasan"],
+      sumberReferensi: "WHO Mental Health Guidelines",
+    },
+    {
+      judul: "Vaksinasi BCG: Perlindungan terhadap TBC",
+      kategori: "pencegahan",
+      ringkasan:
+        "Informasi lengkap tentang vaksinasi BCG untuk melindungi dari TBC. Pentingnya vaksinasi dan siapa yang perlu mendapatkannya.",
+      konten: `# Vaksinasi BCG: Perlindungan terhadap TBC
 
 Vaksinasi BCG adalah salah satu cara penting untuk mencegah TBC, terutama pada anak-anak. Memahami vaksinasi BCG sangat penting untuk perlindungan optimal.
 
@@ -2356,15 +2349,15 @@ Vaksinasi BCG adalah cara penting untuk mencegah TBC, terutama pada anak-anak. D
 - ✅ Gratis dan mudah didapat
 
 **Ingat**: Vaksinasi BCG adalah langkah pertama dalam pencegahan TBC. Lengkapi dengan pola hidup sehat dan pengobatan yang tepat jika terkena TBC!`,
-        tags: ["pencegahan", "vaksinasi", "bcg", "imunisasi", "anak"],
-        sumberReferensi: "WHO BCG Vaccination Guidelines, IDAI",
-      },
-      {
-        judul: "Stigma TBC: Mengatasi dan Menghadapinya",
-        kategori: "tips_kesehatan",
-        ringkasan:
-          "Memahami stigma TBC dan cara mengatasinya. Panduan untuk menghadapi stigma dan mengurangi dampaknya pada kehidupan.",
-        konten: `# Stigma TBC: Mengatasi dan Menghadapinya
+      tags: ["pencegahan", "vaksinasi", "bcg", "imunisasi", "anak"],
+      sumberReferensi: "WHO BCG Vaccination Guidelines, IDAI",
+    },
+    {
+      judul: "Stigma TBC: Mengatasi dan Menghadapinya",
+      kategori: "tips_kesehatan",
+      ringkasan:
+        "Memahami stigma TBC dan cara mengatasinya. Panduan untuk menghadapi stigma dan mengurangi dampaknya pada kehidupan.",
+      konten: `# Stigma TBC: Mengatasi dan Menghadapinya
 
 Stigma terhadap TBC masih menjadi masalah di masyarakat. Memahami dan mengatasi stigma sangat penting untuk kesejahteraan pasien dan keluarga.
 
@@ -2557,12 +2550,766 @@ Stigma TBC adalah masalah nyata, tetapi dapat diatasi. Dengan edukasi, komunikas
 - ✅ Mengurangi isolasi sosial
 
 **Ingat**: TBC adalah penyakit yang dapat disembuhkan. Jangan biarkan stigma menghentikan Anda dari kesembuhan. Anda berhak mendapat dukungan dan perawatan yang baik!`,
-        tags: ["tips_kesehatan", "stigma", "kesehatan_mental", "dukungan"],
-        sumberReferensi: "WHO TB Stigma Guidelines",
-      },
-    ];
+      tags: ["tips_kesehatan", "stigma", "kesehatan_mental", "dukungan"],
+      sumberReferensi: "WHO TB Stigma Guidelines",
+    },
+    {
+      judul: "TBC pada Anak: Gejala, Diagnosis, dan Pengobatan",
+      kategori: "tentang_tbc",
+      ringkasan:
+        "Panduan lengkap tentang TBC pada anak-anak, termasuk gejala khas, cara diagnosis, dan pengobatan khusus untuk anak.",
+      konten: `# TBC pada Anak: Gejala, Diagnosis, dan Pengobatan
 
-    // Check if content already exists
+TBC pada anak memiliki karakteristik yang berbeda dengan TBC pada dewasa. Memahami perbedaan ini sangat penting untuk diagnosis dan pengobatan yang tepat.
+
+## Mengapa TBC pada Anak Berbeda?
+
+### Karakteristik Khusus:
+- **Sulit didiagnosis** - gejala tidak spesifik
+- **TBC ekstra paru lebih sering** - seperti TBC kelenjar, TBC tulang
+- **Risiko komplikasi lebih tinggi** - terutama TBC milier dan meningitis
+- **Gejala tidak khas** - bisa seperti penyakit biasa lainnya
+
+## Gejala TBC pada Anak
+
+### Gejala Umum:
+- ⚠️ **Demam berkepanjangan** (>2 minggu)
+- ⚠️ **Batuk persisten** (>3 minggu)
+- ⚠️ **Penurunan berat badan** atau tidak naik berat badan
+- ⚠️ **Berkeringat di malam hari**
+- ⚠️ **Lesu dan tidak aktif** seperti biasanya
+- ⚠️ **Nafsu makan menurun**
+
+### Gejala TBC Ekstra Paru pada Anak:
+
+**TBC Kelenjar Getah Bening:**
+- Pembengkakan kelenjar di leher, ketiak, atau selangkangan
+- Benjolan yang tidak sakit
+- Dapat pecah dan mengeluarkan nanah
+
+**TBC Meningitis:**
+- Sakit kepala berat
+- Muntah
+- Leher kaku
+- Penurunan kesadaran
+- Kejang
+- **SANGAT BERBAHAYA** - bisa menyebabkan kematian atau cacat
+
+**TBC Tulang:**
+- Nyeri tulang atau sendi
+- Bengkak pada sendi
+- Sulit berjalan atau bergerak
+- Patah tulang
+
+**TBC Milier:**
+- TBC menyebar ke seluruh tubuh
+- Gejala berat
+- **SANGAT BERBAHAYA**
+
+## Diagnosis TBC pada Anak
+
+### 1. Pemeriksaan Fisik
+- Dokter akan memeriksa gejala
+- Memeriksa pembengkakan kelenjar
+- Mendengarkan paru-paru
+- Memeriksa berat badan dan tinggi badan
+
+### 2. Tes Mantoux
+- Tes kulit untuk mendeteksi infeksi TBC
+- Hasil dalam 48-72 jam
+- Positif jika ada benjolan >10mm (atau >5mm pada risiko tinggi)
+
+### 3. Foto Rontgen Dada
+- Melihat kondisi paru-paru
+- Mencari kelainan yang menunjukkan TBC
+
+### 4. Tes Dahak
+- Lebih sulit pada anak karena sulit mengeluarkan dahak
+- Dilakukan jika memungkinkan
+- Kadang perlu menggunakan cara khusus (gastric lavage)
+
+### 5. Tes Darah (IGRA)
+- Alternatif tes Mantoux
+- Lebih akurat pada beberapa kasus
+
+### 6. Tes Lainnya
+- Biopsi kelenjar (jika ada pembengkakan)
+- Pungsi lumbal (untuk TBC meningitis)
+- Pemeriksaan cairan sendi (untuk TBC tulang)
+
+## Faktor Risiko TBC pada Anak
+
+### Anak Berisiko Tinggi:
+- ✅ Kontak erat dengan penderita TBC aktif
+- ✅ Anak dengan HIV
+- ✅ Malnutrisi
+- ✅ Anak di bawah 5 tahun
+- ✅ Tidak mendapat vaksinasi BCG
+- ✅ Tinggal di lingkungan padat
+- ✅ Kondisi yang menurunkan sistem imun
+
+## Pengobatan TBC pada Anak
+
+### Prinsip Pengobatan:
+- ✅ **Sama dengan dewasa** - menggunakan obat yang sama
+- ✅ **Dosis disesuaikan** dengan berat badan anak
+- ✅ **Durasi sama** - 6-9 bulan
+- ✅ **DOT (Directly Observed Therapy)** - sangat penting
+- ✅ **Monitoring ketat** - karena risiko efek samping
+
+### Obat yang Digunakan:
+1. **Rifampisin**
+2. **Isoniazid**
+3. **Pirazinamid**
+4. **Etambutol** (atau Streptomisin untuk kasus tertentu)
+
+### Dosis Berdasarkan Berat Badan:
+- Dosis dihitung per kg berat badan
+- Harus tepat untuk efektivitas dan keamanan
+- Dokter akan menghitung dosis dengan cermat
+
+### Fase Pengobatan:
+- **Fase Intensif**: 2 bulan (4 obat)
+- **Fase Lanjutan**: 4-7 bulan (2 obat)
+
+## Masalah Khusus pada Pengobatan Anak
+
+### 1. Kesulitan Minum Obat
+**Solusi:**
+- ✅ Hancurkan tablet dan campur dengan makanan/susu
+- ✅ Gunakan bentuk sirup jika tersedia
+- ✅ Berikan setelah makan
+- ✅ Jelaskan pentingnya minum obat dengan bahasa sederhana
+- ✅ Berikan pujian setelah minum obat
+
+### 2. Efek Samping
+**Yang Harus Diwaspadai:**
+- ⚠️ Mual dan muntah
+- ⚠️ Ruam kulit
+- ⚠️ Perubahan warna urin (normal - oranye/merah)
+- ⚠️ Masalah penglihatan (langsung ke dokter)
+- ⚠️ Demam tinggi (langsung ke dokter)
+
+### 3. Monitoring Pertumbuhan
+- ✅ Pantau berat badan setiap bulan
+- ✅ Pantau tinggi badan
+- ✅ Pastikan nutrisi cukup
+- ✅ Konsultasi ahli gizi jika perlu
+
+## Nutrisi untuk Anak dengan TBC
+
+### Makanan Penting:
+- ✅ **Protein tinggi** - telur, ikan, ayam, tahu, tempe
+- ✅ **Karbohidrat** - nasi, kentang, ubi
+- ✅ **Buah dan sayur** - untuk vitamin dan mineral
+- ✅ **Susu** - untuk kalsium dan protein
+- ✅ **Camilan sehat** - buah, kacang, yoghurt
+
+### Tips Makan:
+- Makan dalam porsi kecil tapi sering
+- Buat makanan menarik (warna, bentuk)
+- Makan bersama keluarga
+- Hindari makanan yang membuat mual
+
+## Vaksinasi BCG
+
+### Pentingnya BCG:
+- ✅ **Mencegah TBC berat** pada anak
+- ✅ Khususnya TBC meningitis dan TBC milier
+- ✅ Diberikan segera setelah lahir
+- ✅ **Wajib** untuk semua bayi di Indonesia
+
+### Jika Belum Vaksinasi:
+- Bisa diberikan sebelum usia 1 tahun
+- Setelah 1 tahun perlu tes Mantoux dulu
+- Konsultasi dengan dokter
+
+## Pencegahan Penularan pada Anak
+
+### Jika Anak Terkena TBC:
+- ✅ Isolasi sementara (2-3 minggu pertama)
+- ✅ Gunakan masker saat kontak dengan orang lain
+- ✅ Ventilasi ruangan yang baik
+- ✅ Kontak erat perlu diperiksa
+- ✅ Vaksinasi BCG untuk bayi di rumah
+
+### Melindungi Anak dari TBC:
+- ✅ Vaksinasi BCG segera setelah lahir
+- ✅ Hindari kontak dengan penderita TBC aktif
+- ✅ Pola hidup sehat dan gizi baik
+- ✅ Ventilasi rumah yang baik
+- ✅ Edukasi keluarga tentang TBC
+
+## Kapan Harus Ke Dokter?
+
+**Segera ke dokter jika anak:**
+- 🚨 Demam >2 minggu tanpa sebab jelas
+- 🚨 Batuk >3 minggu
+- 🚨 Penurunan berat badan atau tidak naik berat badan
+- 🚨 Kontak erat dengan penderita TBC
+- 🚨 Gejala TBC meningitis (sakit kepala, muntah, kejang)
+- 🚨 Pembengkakan kelenjar yang tidak sembuh
+- 🚨 Lesu dan tidak aktif seperti biasanya
+
+## Kesimpulan
+
+TBC pada anak adalah kondisi serius yang memerlukan:
+- ✅ Diagnosis yang tepat dan cepat
+- ✅ Pengobatan yang sesuai dan teratur
+- ✅ Monitoring ketat
+- ✅ Dukungan keluarga
+- ✅ Nutrisi yang baik
+
+**Ingat**: TBC pada anak dapat disembuhkan dengan pengobatan yang tepat. Deteksi dini sangat penting untuk hasil yang baik!`,
+      tags: ["tentang_tbc", "anak", "diagnosis", "pengobatan", "gejala"],
+      sumberReferensi: "WHO TB Guidelines for Children, IDAI",
+    },
+    {
+      judul: "Panduan Lengkap Interaksi Obat TBC dengan Makanan",
+      kategori: "pengobatan",
+      ringkasan:
+        "Panduan lengkap tentang interaksi obat TBC dengan makanan, minuman, dan suplemen. Ketahui apa yang boleh dan tidak boleh dikonsumsi saat pengobatan TBC.",
+      konten: `# Panduan Lengkap Interaksi Obat TBC dengan Makanan
+
+Memahami interaksi obat TBC dengan makanan sangat penting untuk efektivitas pengobatan dan keamanan. Beberapa makanan dan minuman dapat mempengaruhi penyerapan dan kerja obat TBC.
+
+## Interaksi Obat TBC dengan Makanan
+
+### Rifampisin
+
+**Cara Minum:**
+- ✅ **Boleh diminum sebelum atau sesudah makan**
+- ✅ Lebih baik dengan perut kosong (1 jam sebelum makan atau 2 jam sesudah makan) untuk penyerapan optimal
+- ⚠️ Jika menyebabkan mual, boleh diminum setelah makan ringan
+
+**Interaksi dengan Makanan:**
+- ❌ **Hindari alkohol** - meningkatkan risiko kerusakan hati
+- ⚠️ Makanan berlemak tinggi dapat sedikit menurunkan penyerapan
+
+**Interaksi dengan Minuman:**
+- ❌ **Jangan minum dengan susu** - dapat mengurangi penyerapan
+- ✅ Lebih baik dengan air putih
+
+### Isoniazid
+
+**Cara Minum:**
+- ✅ **Lebih baik dengan perut kosong** (1 jam sebelum makan atau 2 jam sesudah makan)
+- ⚠️ Jika menyebabkan mual, boleh diminum setelah makan ringan
+
+**Interaksi dengan Makanan:**
+- ❌ **Hindari makanan tinggi tiramin** (dapat menyebabkan reaksi seperti sakit kepala, tekanan darah tinggi):
+  - Keju tua
+  - Daging asap/daging olahan
+  - Ikan asin
+  - Wine/anggur
+  - Kacang fava
+- ❌ **Hindari alkohol** - meningkatkan risiko kerusakan hati
+
+**Interaksi dengan Suplemen:**
+- ✅ **Perlu suplemen Vitamin B6** (Pyridoxine) - untuk mencegah neuropati
+- ✅ Dosis biasanya 25-50mg per hari
+- ✅ Konsultasi dengan dokter
+
+### Pirazinamid
+
+**Cara Minum:**
+- ✅ **Boleh diminum dengan atau tanpa makanan**
+- ✅ Lebih baik setelah makan untuk mengurangi mual
+
+**Interaksi dengan Makanan:**
+- ⚠️ Makanan berlemak tinggi dapat meningkatkan penyerapan
+- ❌ **Hindari alkohol** - meningkatkan risiko kerusakan hati
+
+**Efek Samping yang Perlu Diwaspadai:**
+- ⚠️ Peningkatan kadar asam urat (dapat menyebabkan nyeri sendi)
+- ✅ Minum banyak air putih
+- ✅ Hindari makanan tinggi purin jika nyeri sendi terjadi
+
+### Etambutol
+
+**Cara Minum:**
+- ✅ **Boleh diminum dengan atau tanpa makanan**
+- ✅ Lebih baik dengan makanan untuk mengurangi gangguan lambung
+
+**Interaksi dengan Makanan:**
+- ⚠️ **Aluminum antasida** dapat mengurangi penyerapan - minum dengan jarak 2 jam
+
+**Efek Samping Penting:**
+- ⚠️ Dapat menyebabkan masalah penglihatan (buta warna, penglihatan kabur)
+- ✅ Segera ke dokter jika terjadi masalah penglihatan
+- ✅ Pemeriksaan mata rutin dianjurkan
+
+## Interaksi dengan Minuman
+
+### Alkohol
+
+**PENTING - JANGAN MINUM ALKOHOL:**
+- ❌ **Meningkatkan risiko kerusakan hati** - semua obat TBC dapat menyebabkan kerusakan hati
+- ❌ Alkohol juga dapat merusak hati
+- ❌ Kombinasi keduanya sangat berbahaya
+- ❌ Dapat menyebabkan hepatitis yang fatal
+
+### Susu
+
+**Rifampisin:**
+- ❌ **Jangan minum dengan susu** - mengurangi penyerapan obat
+- ✅ Beri jarak minimal 2 jam antara minum susu dan obat
+
+**Obat TBC Lainnya:**
+- ⚠️ Lebih baik tidak diminum bersamaan dengan susu
+- ✅ Beri jarak minimal 1 jam
+
+### Teh dan Kopi
+
+- ⚠️ **Kafein dapat berinteraksi** dengan beberapa obat
+- ⚠️ Dapat meningkatkan efek samping (sakit kepala, jantung berdebar)
+- ✅ Minum secukupnya, jangan berlebihan
+- ✅ Lebih baik dengan air putih
+
+### Jus Buah
+
+- ⚠️ Beberapa jus dapat mempengaruhi penyerapan obat
+- ✅ Lebih baik minum air putih saat minum obat
+- ✅ Jus boleh diminum dengan jarak 1-2 jam
+
+## Interaksi dengan Suplemen
+
+### Vitamin dan Mineral
+
+**Vitamin B6 (Pyridoxine):**
+- ✅ **WAJIB** untuk pasien yang minum Isoniazid
+- ✅ Mencegah neuropati perifer (kesemutan, mati rasa)
+- ✅ Dosis: 25-50mg per hari
+- ✅ Konsultasi dengan dokter
+
+**Vitamin D:**
+- ✅ Boleh dikonsumsi jika diperlukan
+- ✅ Bermanfaat untuk kesehatan tulang dan sistem imun
+- ✅ Konsultasi dengan dokter untuk dosis
+
+**Zinc:**
+- ✅ Boleh dikonsumsi jika diperlukan
+- ✅ Dapat membantu sistem imun
+- ⚠️ Jangan berlebihan - konsultasi dengan dokter
+
+**Multivitamin:**
+- ✅ Boleh dikonsumsi jika diperlukan
+- ⚠️ Pastikan tidak mengandung zat yang berinteraksi
+- ✅ Konsultasi dengan dokter
+
+**Suplemen Herbal:**
+- ⚠️ **Hati-hati** - banyak suplemen herbal yang dapat berinteraksi dengan obat
+- ✅ Konsultasi dengan dokter sebelum mengonsumsi
+- ❌ Jangan mengonsumsi tanpa izin dokter
+
+## Interaksi dengan Obat Lain
+
+### Antasida
+- ⚠️ Dapat mengurangi penyerapan beberapa obat TBC
+- ✅ Beri jarak minimal 2 jam antara minum antasida dan obat TBC
+
+### Antikoagulan (Pengencer Darah)
+- ⚠️ Rifampisin dapat mengurangi efektivitas obat pengencer darah
+- ✅ Konsultasi dengan dokter jika minum obat pengencer darah
+
+### Kontrasepsi Hormonal
+- ⚠️ Rifampisin dapat mengurangi efektivitas pil KB
+- ✅ Gunakan metode kontrasepsi tambahan
+- ✅ Konsultasi dengan dokter
+
+### Obat Diabetes
+- ⚠️ Beberapa obat TBC dapat mempengaruhi gula darah
+- ✅ Pantau gula darah lebih ketat
+- ✅ Konsultasi dengan dokter
+
+### Obat untuk HIV
+- ⚠️ Interaksi kompleks antara obat TBC dan ARV
+- ✅ Harus di bawah pengawasan dokter spesialis
+- ✅ Perlu penyesuaian dosis
+
+## Tips Praktis
+
+### 1. Waktu Minum Obat
+
+**Rekomendasi:**
+- ✅ Minum di **waktu yang sama setiap hari**
+- ✅ Lebih baik **pagi hari** setelah bangun tidur (dengan perut kosong)
+- ✅ Atau **malam hari** sebelum tidur (2 jam setelah makan malam)
+
+**Jika Menyebabkan Mual:**
+- ✅ Minum setelah makan ringan (roti, biskuit)
+- ✅ Jangan makan makanan berat sebelum minum obat
+
+### 2. Cara Minum Obat
+
+**Yang Benar:**
+- ✅ Minum dengan **air putih** (1 gelas penuh)
+- ✅ Jangan dihancurkan kecuali diinstruksikan dokter
+- ✅ Telan utuh (kecuali jika sulit, konsultasi dokter)
+
+**Yang Salah:**
+- ❌ Minum dengan susu, teh, atau kopi
+- ❌ Menghancurkan tablet tanpa konsultasi dokter
+- ❌ Minum dengan sedikit air
+
+### 3. Jeda dengan Makanan/Minuman Lain
+
+**Rekomendasi:**
+- ✅ **Susu**: Beri jarak minimal 2 jam
+- ✅ **Teh/Kopi**: Beri jarak minimal 1 jam
+- ✅ **Antasida**: Beri jarak minimal 2 jam
+- ✅ **Suplemen**: Beri jarak minimal 1 jam
+
+### 4. Catat dan Konsultasi
+
+- ✅ Catat semua obat dan suplemen yang dikonsumsi
+- ✅ Konsultasi dengan dokter sebelum minum obat/suplemen baru
+- ✅ Laporkan efek samping yang dialami
+- ✅ Jangan minum obat/suplemen tanpa resep dokter
+
+## Contoh Jadwal Minum Obat
+
+### Jadwal Pagi (Setelah Bangun Tidur):
+1. Bangun tidur
+2. Minum obat TBC dengan air putih (dengan perut kosong)
+3. Tunggu 1 jam
+4. Sarapan
+5. Minum suplemen Vitamin B6 setelah sarapan (jika diresepkan)
+
+### Jadwal Malam (Sebelum Tidur):
+1. Makan malam (selesai 2 jam sebelum tidur)
+2. Minum obat TBC dengan air putih
+3. Tidur
+
+## Kesimpulan
+
+Interaksi obat TBC dengan makanan dan minuman perlu diperhatikan untuk:
+- ✅ **Efektivitas pengobatan** yang optimal
+- ✅ **Keamanan** - menghindari efek samping yang berbahaya
+- ✅ **Kesembuhan** yang lebih cepat
+
+**Penting:**
+- ✅ Minum obat dengan air putih
+- ✅ Hindari alkohol
+- ✅ Konsultasi dengan dokter untuk suplemen
+- ✅ Catat dan laporkan efek samping
+- ✅ Jangan minum obat/suplemen baru tanpa konsultasi dokter
+
+**Ingat**: Konsultasi selalu dengan dokter atau apoteker jika ada pertanyaan tentang interaksi obat!`,
+      tags: ["pengobatan", "interaksi_obat", "makanan", "nutrisi", "tips"],
+      sumberReferensi: "WHO TB Drug Interaction Guidelines, Pharmacopeia",
+    },
+    {
+      judul: "Pentingnya Pemeriksaan Kontrol Rutin selama Pengobatan TBC",
+      kategori: "pengobatan",
+      ringkasan:
+        "Mengapa pemeriksaan kontrol rutin sangat penting selama pengobatan TBC dan apa saja yang diperiksa. Panduan lengkap untuk pasien dan keluarga.",
+      konten: `# Pentingnya Pemeriksaan Kontrol Rutin selama Pengobatan TBC
+
+Pemeriksaan kontrol rutin adalah bagian penting dari pengobatan TBC. Kontrol rutin membantu memastikan pengobatan berjalan dengan baik dan mendeteksi masalah sejak dini.
+
+## Mengapa Kontrol Rutin Penting?
+
+### 1. Memantau Respons Pengobatan
+- ✅ Menilai apakah gejala membaik
+- ✅ Menilai apakah pengobatan efektif
+- ✅ Mendeteksi jika pengobatan tidak efektif sejak dini
+
+### 2. Memantau Efek Samping
+- ✅ Mendeteksi efek samping obat
+- ✅ Mencegah komplikasi serius
+- ✅ Menyesuaikan dosis jika diperlukan
+
+### 3. Memastikan Kepatuhan
+- ✅ Menilai apakah pasien minum obat teratur
+- ✅ Memberikan motivasi dan dukungan
+- ✅ Mengatasi hambatan dalam pengobatan
+
+### 4. Mencegah Resistensi Obat
+- ✅ Memastikan pengobatan efektif
+- ✅ Mendeteksi resistensi sejak dini
+- ✅ Mencegah perkembangan MDR-TB
+
+### 5. Evaluasi Kesembuhan
+- ✅ Menentukan kapan pasien sembuh
+- ✅ Memutuskan kapan pengobatan selesai
+- ✅ Memberikan pedoman pasca pengobatan
+
+## Jadwal Kontrol Rutin
+
+### Fase Intensif (Bulan 1-2):
+
+**Kontrol Mingguan (2 Minggu Pertama):**
+- ✅ Kontrol setelah 2 minggu pengobatan
+- ✅ Evaluasi efek samping
+- ✅ Motivasi dan dukungan
+- ✅ Konseling tentang pengobatan
+
+**Kontrol Bulanan:**
+- ✅ Kontrol setiap bulan
+- ✅ Tes dahak bulanan
+- ✅ Evaluasi respons pengobatan
+- ✅ Pemeriksaan fisik
+
+### Fase Lanjutan (Bulan 3-6/9):
+
+**Kontrol Bulanan:**
+- ✅ Kontrol setiap bulan
+- ✅ Tes dahak setiap 2 bulan
+- ✅ Evaluasi respons pengobatan
+- ✅ Motivasi dan dukungan
+
+### Setelah Selesai Pengobatan:
+
+**Kontrol Pasca Pengobatan:**
+- ✅ Kontrol 1 bulan setelah selesai pengobatan
+- ✅ Kontrol 3 bulan setelah selesai
+- ✅ Kontrol 6 bulan setelah selesai
+- ✅ Kontrol 12 bulan setelah selesai
+
+## Pemeriksaan yang Dilakukan
+
+### 1. Anamnesis (Wawancara)
+
+**Pertanyaan tentang Gejala:**
+- ✅ Apakah batuk sudah berkurang?
+- ✅ Apakah demam sudah hilang?
+- ✅ Apakah nafsu makan sudah membaik?
+- ✅ Apakah berat badan sudah naik?
+- ✅ Apakah masih ada gejala lain?
+
+**Pertanyaan tentang Pengobatan:**
+- ✅ Apakah minum obat teratur?
+- ✅ Apakah ada dosis yang terlewat?
+- ✅ Apakah ada kesulitan minum obat?
+- ✅ Bagaimana cara mengingat minum obat?
+
+**Pertanyaan tentang Efek Samping:**
+- ✅ Apakah ada efek samping yang dialami?
+- ✅ Apakah efek samping mengganggu?
+- ✅ Bagaimana mengatasi efek samping?
+
+### 2. Pemeriksaan Fisik
+
+**Yang Diperiksa:**
+- ✅ **Berat badan** - harus naik atau stabil
+- ✅ **Tinggi badan** (untuk anak)
+- ✅ **Tekanan darah** - normal
+- ✅ **Detak jantung** - normal
+- ✅ **Suhu tubuh** - normal (tidak demam)
+- ✅ **Pernapasan** - normal, tidak sesak
+- ✅ **Paru-paru** - mendengarkan suara napas
+- ✅ **Kelenjar getah bening** - memeriksa pembengkakan
+- ✅ **Mata** (untuk pasien yang minum Etambutol) - memeriksa penglihatan
+
+### 3. Tes Dahak
+
+**Frekuensi:**
+- ✅ **Bulanan** selama fase intensif
+- ✅ **Setiap 2 bulan** selama fase lanjutan
+- ✅ **Setelah selesai pengobatan** (1, 3, 6, 12 bulan)
+
+**Tujuan:**
+- ✅ Menilai apakah masih ada bakteri TBC
+- ✅ Menilai efektivitas pengobatan
+- ✅ Menentukan apakah sudah sembuh
+- ✅ Mendeteksi resistensi obat
+
+**Hasil:**
+- ✅ **Negatif**: Tidak ada bakteri - pengobatan efektif
+- ⚠️ **Positif**: Masih ada bakteri - perlu evaluasi lebih lanjut
+
+### 4. Foto Rontgen Dada
+
+**Frekuensi:**
+- ✅ **Awal pengobatan** - baseline
+- ✅ **Setelah 2 bulan** - evaluasi awal
+- ✅ **Setelah 6 bulan** - evaluasi tengah
+- ✅ **Setelah selesai pengobatan** - evaluasi akhir
+- ✅ **Jika ada masalah** - sesuai kebutuhan
+
+**Tujuan:**
+- ✅ Menilai perbaikan paru-paru
+- ✅ Mencari kelainan baru
+- ✅ Evaluasi kesembuhan
+
+### 5. Pemeriksaan Laboratorium
+
+**Pemeriksaan Darah:**
+- ✅ **Hitung darah lengkap** - memantau kondisi umum
+- ✅ **Fungsi hati** - penting karena obat TBC dapat mempengaruhi hati
+- ✅ **Fungsi ginjal** - memantau kesehatan ginjal
+- ✅ **Gula darah** (jika diabetes)
+
+**Frekuensi:**
+- ✅ **Awal pengobatan** - baseline
+- ✅ **Setelah 1 bulan** - skrining efek samping
+- ✅ **Jika ada gejala** - sesuai kebutuhan
+- ✅ **Setelah selesai pengobatan** - evaluasi akhir
+
+### 6. Pemeriksaan Khusus
+
+**Untuk Pasien dengan Efek Samping:**
+- ✅ **Pemeriksaan mata** - jika minum Etambutol dan ada keluhan penglihatan
+- ✅ **Pemeriksaan pendengaran** - jika minum Streptomisin
+- ✅ **Pemeriksaan hati** - jika ada gejala hepatitis
+
+**Untuk Pasien dengan Komplikasi:**
+- ✅ **CT Scan** - jika diperlukan evaluasi lebih detail
+- ✅ **Bronkoskopi** - jika diperlukan evaluasi saluran napas
+- ✅ **Biopsi** - jika diperlukan konfirmasi
+
+## Persiapan untuk Kontrol
+
+### Sebelum Kontrol:
+
+**Siapkan:**
+- ✅ **Catatan pengobatan** - catat dosis yang diminum setiap hari
+- ✅ **Catatan gejala** - catat gejala yang dialami
+- ✅ **Catatan efek samping** - catat efek samping yang dialami
+- ✅ **Pertanyaan** - tulis pertanyaan yang ingin ditanyakan
+- ✅ **Obat yang masih tersisa** - bawa untuk evaluasi
+- ✅ **Hasil pemeriksaan sebelumnya** - bawa untuk perbandingan
+
+**Untuk Tes Dahak:**
+- ✅ Bawa wadah untuk dahak (disediakan di fasilitas kesehatan)
+- ✅ Dahak diambil pagi hari (sebelum sarapan, sebelum sikat gigi)
+- ✅ Kumpulkan dahak dari dalam paru-paru (bukan air liur)
+
+### Saat Kontrol:
+
+- ✅ **Datang tepat waktu**
+- ✅ **Bawa semua dokumen**
+- ✅ **Sampaikan semua keluhan** dengan jujur
+- ✅ **Tanyakan jika ada yang tidak jelas**
+- ✅ **Catat instruksi dokter**
+
+## Indikator Pengobatan Berhasil
+
+### Gejala yang Membaik:
+- ✅ Batuk berkurang atau hilang
+- ✅ Demam hilang
+- ✅ Nafsu makan membaik
+- ✅ Berat badan naik
+- ✅ Kekuatan fisik membaik
+- ✅ Tidak ada gejala baru
+
+### Hasil Pemeriksaan yang Baik:
+- ✅ **Tes dahak negatif** (tidak ada bakteri)
+- ✅ **Foto rontgen membaik** (kerusakan paru-paru berkurang)
+- ✅ **Berat badan naik** atau stabil
+- ✅ **Pemeriksaan fisik normal**
+- ✅ **Pemeriksaan laboratorium normal**
+
+### Kepatuhan yang Baik:
+- ✅ Minum obat setiap hari tanpa terlewat
+- ✅ Datang kontrol rutin
+- ✅ Mengikuti instruksi dokter
+
+## Tanda Pengobatan Tidak Berhasil
+
+### Gejala yang Memburuk:
+- ⚠️ Batuk masih ada atau memburuk setelah 2 bulan
+- ⚠️ Demam masih ada
+- ⚠️ Berat badan tidak naik atau turun
+- ⚠️ Gejala baru muncul
+
+### Hasil Pemeriksaan yang Tidak Baik:
+- ⚠️ **Tes dahak masih positif** setelah 2 bulan
+- ⚠️ **Foto rontgen tidak membaik** atau memburuk
+- ⚠️ **Efek samping berat** yang tidak bisa diatasi
+
+**Jika terjadi, dokter akan:**
+- ⚠️ Mengevaluasi kepatuhan pasien
+- ⚠️ Menilai kemungkinan resistensi obat
+- ⚠️ Mempertimbangkan perubahan pengobatan
+- ⚠️ Melakukan tes tambahan
+
+## Tips untuk Kontrol yang Optimal
+
+### 1. Catat Semua yang Penting
+- ✅ Buat catatan harian pengobatan
+- ✅ Catat gejala yang dialami
+- ✅ Catat efek samping
+- ✅ Catat pertanyaan untuk dokter
+
+### 2. Jujur dengan Dokter
+- ✅ Laporkan jika ada dosis yang terlewat
+- ✅ Laporkan semua efek samping
+- ✅ Sampaikan kesulitan dalam pengobatan
+- ✅ Jangan menyembunyikan masalah
+
+### 3. Aktif Bertanya
+- ✅ Tanyakan jika ada yang tidak jelas
+- ✅ Tanyakan tentang efek samping
+- ✅ Tanyakan tentang perbaikan kondisi
+- ✅ Tanyakan tentang hal yang perlu dilakukan
+
+### 4. Ikuti Instruksi Dokter
+- ✅ Minum obat sesuai resep
+- ✅ Ikuti jadwal kontrol
+- ✅ Ikuti diet dan gaya hidup yang disarankan
+- ✅ Lakukan pemeriksaan yang diminta
+
+### 5. Jangan Putus Kontrol
+- ✅ Kontrol rutin sangat penting
+- ✅ Jangan skip kontrol meski merasa sudah sehat
+- ✅ Jangan berhenti minum obat sendiri
+- ✅ Selesaikan pengobatan lengkap
+
+## Kesimpulan
+
+Pemeriksaan kontrol rutin adalah kunci keberhasilan pengobatan TBC. Dengan kontrol rutin:
+- ✅ Pengobatan dapat dipantau dengan baik
+- ✅ Masalah dapat dideteksi sejak dini
+- ✅ Efek samping dapat ditangani dengan cepat
+- ✅ Kesembuhan dapat tercapai
+- ✅ Resistensi obat dapat dicegah
+
+**Ingat**: Kontrol rutin adalah investasi untuk kesembuhan. Jangan lewatkan kontrol meskipun merasa sudah sehat!`,
+      tags: ["pengobatan", "kontrol", "pemeriksaan", "monitoring", "kesehatan"],
+      sumberReferensi: "WHO TB Treatment Monitoring Guidelines, Kemenkes RI",
+    },
+  ];
+};
+
+// Auto-seed function (called on server start)
+exports.seedEdukasiData = async () => {
+  try {
+    const existingCount = await Edukasi.countDocuments();
+
+    if (existingCount > 0) {
+      console.log(
+        `✅ Edukasi content already exists (${existingCount} articles)`
+      );
+      return {
+        success: true,
+        count: existingCount,
+        message: "Content already exists",
+      };
+    }
+
+    const initialContent = getInitialContent();
+    await Edukasi.insertMany(initialContent);
+
+    console.log(
+      `✅ Successfully seeded ${initialContent.length} edukasi articles`
+    );
+    return {
+      success: true,
+      count: initialContent.length,
+      message: "Content seeded successfully",
+    };
+  } catch (error) {
+    console.error("❌ Error auto-seeding edukasi:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Seed initial educational content (deprecated - kept for backward compatibility but should not be used)
+exports.seedEdukasi = async (req, res) => {
+  try {
+    const initialContent = getInitialContent();
     const existingCount = await Edukasi.countDocuments();
     const forceSeed = req.query.force === "true" || req.body.force === true;
 
@@ -2570,7 +3317,7 @@ Stigma TBC adalah masalah nyata, tetapi dapat diatasi. Dengan edukasi, komunikas
       return res.status(400).json({
         success: false,
         message:
-          "Konten edukasi sudah ada. Gunakan ?force=true untuk menambahkan ulang",
+          "Konten edukasi sudah ada. Konten otomatis tersedia saat server start.",
         existingCount: existingCount,
       });
     }

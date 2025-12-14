@@ -107,12 +107,6 @@ export const edukasiService = {
   getPopular: (params) => api.get("/edukasi/popular", { params }),
   getByKategori: (kategori) => api.get(`/edukasi/kategori/${kategori}`),
   getById: (id) => api.get(`/edukasi/${id}`),
-  seed: (force = false) => {
-    if (force) {
-      return api.post("/edukasi/seed?force=true");
-    }
-    return api.post("/edukasi/seed");
-  },
 };
 
 // Family Services

@@ -9,7 +9,6 @@ const EdukasiList = () => {
   const [loading, setLoading] = useState(true);
   const [selectedKategori, setSelectedKategori] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [seeding, setSeeding] = useState(false);
 
   const kategoriOptions = [
     { value: "all", label: "Semua", icon: "📚", color: "bg-gray-100" },
@@ -79,81 +78,19 @@ const EdukasiList = () => {
     return cat ? cat.color : "bg-gray-100";
   };
 
-  const handleSeedEdukasi = async () => {
-    try {
-      setSeeding(true);
-      const response = await edukasiService.seed();
-      if (response.data.success) {
-        alert(`Berhasil menambahkan ${response.data.count} artikel edukasi!`);
-        loadEdukasi(); // Reload artikel
-      } else {
-        alert(response.data.message || "Gagal menambahkan artikel");
-      }
-    } catch (error) {
-      console.error("Error seeding edukasi:", error);
-      if (error.response?.data?.message) {
-        // Jika sudah ada artikel, tanya apakah ingin force seed
-        if (
-          confirm(
-            error.response.data.message +
-              "\n\nApakah Anda ingin menambahkan ulang artikel? (Artikel lama akan dihapus)"
-          )
-        ) {
-          try {
-            const forceResponse = await edukasiService.seed(true);
-            if (forceResponse.data.success) {
-              alert(
-                `Berhasil menambahkan ${forceResponse.data.count} artikel edukasi!`
-              );
-              loadEdukasi();
-            }
-          } catch (forceError) {
-            console.error("Error force seeding:", forceError);
-            alert("Gagal menambahkan artikel");
-          }
-        }
-      } else {
-        alert("Gagal menambahkan artikel");
-      }
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 py-8 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  📚 Edukasi Kesehatan
-                </h1>
-                <p className="text-gray-600">
-                  Artikel, tips, dan panduan lengkap tentang TBC dan kesehatan
-                </p>
-              </div>
-              {edukasiList.length === 0 && !loading && (
-                <button
-                  onClick={handleSeedEdukasi}
-                  disabled={seeding}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {seeding ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Menambahkan...
-                    </>
-                  ) : (
-                    <>
-                      <span>📝</span>
-                      Tambah Artikel
-                    </>
-                  )}
-                </button>
-              )}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                📚 Edukasi Kesehatan
+              </h1>
+              <p className="text-gray-600">
+                Artikel, tips, dan panduan lengkap tentang TBC dan kesehatan
+              </p>
             </div>
           </div>
 
@@ -214,27 +151,10 @@ const EdukasiList = () => {
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 Belum ada artikel edukasi
               </h3>
-              <p className="text-gray-600 mb-6">
-                Klik tombol "Tambah Artikel" di atas untuk menambahkan artikel
-                edukasi lengkap
+              <p className="text-gray-600">
+                Artikel edukasi akan tersedia dalam beberapa saat. Silakan
+                refresh halaman jika artikel belum muncul.
               </p>
-              <button
-                onClick={handleSeedEdukasi}
-                disabled={seeding}
-                className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-              >
-                {seeding ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Menambahkan Artikel...
-                  </>
-                ) : (
-                  <>
-                    <span>📝</span>
-                    Tambah Artikel Edukasi
-                  </>
-                )}
-              </button>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

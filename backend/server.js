@@ -19,6 +19,8 @@ const profileRoutes = require("./routes/profile");
 
 // Import notification controller for cron
 const { setupCronJobs } = require("./controllers/notificationController");
+// Import edukasi controller for auto-seed
+const { seedEdukasiData } = require("./controllers/edukasiController");
 
 const app = express();
 
@@ -33,7 +35,11 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Database connection
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/tabbycare")
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(async () => {
+    console.log("✅ MongoDB Connected");
+    // Auto-seed edukasi content if database is empty
+    await seedEdukasiData();
+  })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 // Routes
