@@ -3,8 +3,7 @@ const Obat = require("../models/Obat");
 const Family = require("../models/Family");
 const User = require("../models/User");
 const MedicationLog = require("../models/MedicationLog");
-// Email utils can crash deployment if file is missing or mis-cased on Vercel.
-// Wrap require so API still runs (logs warning) instead of failing cold.
+// Ensure case-sensitive path for Vercel (Linux)
 let sendEmail = async () => {};
 let sendMedicationReminder = async () => {};
 let sendMissedMedicationAlert = async () => {};
@@ -15,7 +14,7 @@ try {
     sendMedicationReminder,
     sendMissedMedicationAlert,
     sendWeeklySummary,
-  } = require("../utils/emailService"));
+  } = require("../Utils/emailService"));
 } catch (err) {
   console.error("⚠️ emailService not loaded, email features disabled:", err.message);
 }

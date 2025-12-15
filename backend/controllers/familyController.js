@@ -1,6 +1,6 @@
 const Family = require("../models/Family");
 const User = require("../models/User");
-const { sendEmail } = require("../utils/emailService");
+const { sendEmail } = require("../Utils/emailService");
 
 // Add Family Member
 exports.addFamily = async (req, res) => {

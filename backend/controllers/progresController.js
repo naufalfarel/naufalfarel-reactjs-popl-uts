@@ -1,4 +1,4 @@
-const Progres = require("../models/Progres");
+const Progres = require("../models/progres");
 const path = require("path");
 const fs = require("fs");
 const { bufferToBase64, isBase64DataUrl } = require("../Utils/cloudinary");
