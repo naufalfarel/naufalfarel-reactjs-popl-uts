@@ -5,6 +5,9 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 
+// Force timezone to Asia/Jakarta in Vercel runtime
+process.env.TZ = "Asia/Jakarta";
+
 const app = express();
 
 // Middleware
