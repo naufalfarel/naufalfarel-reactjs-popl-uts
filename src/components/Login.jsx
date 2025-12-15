@@ -38,18 +38,24 @@ const Login = () => {
       // Check database status first
       const isDbConnected = await checkDatabaseStatus();
       if (!isDbConnected) {
-        setError("Database tidak terhubung. Silakan coba lagi dalam beberapa saat atau hubungi administrator.");
+        setError(
+          "Database tidak terhubung. Silakan coba lagi dalam beberapa saat atau hubungi administrator."
+        );
         setLoading(false);
         return;
       }
 
       // Call login API
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email: formData.email,
-        password: formData.password,
-      }, {
-        timeout: 10000, // 10 seconds timeout
-      });
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        {
+          timeout: 10000, // 10 seconds timeout
+        }
+      );
 
       if (response.data.success) {
         // Save token and user to localStorage
@@ -63,14 +69,21 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      
+
       // Handle different error types
       if (!err.response) {
         // No response from server
         if (err.code === "ECONNREFUSED" || err.code === "ERR_NETWORK") {
-          setError("Tidak dapat terhubung ke server. Pastikan server backend sedang berjalan.");
-        } else if (err.code === "ECONNABORTED" || err.message.includes("timeout")) {
-          setError("Request timeout. Server terlalu lama merespons. Silakan coba lagi.");
+          setError(
+            "Tidak dapat terhubung ke server. Pastikan server backend sedang berjalan."
+          );
+        } else if (
+          err.code === "ECONNABORTED" ||
+          err.message.includes("timeout")
+        ) {
+          setError(
+            "Request timeout. Server terlalu lama merespons. Silakan coba lagi."
+          );
         } else {
           setError("Terjadi kesalahan koneksi. Silakan coba lagi.");
         }
@@ -78,13 +91,19 @@ const Login = () => {
         // Server responded with error
         const status = err.response.status;
         const message = err.response.data?.message || "";
-        
+
         if (status === 503) {
-          setError("Database tidak terhubung. Silakan tunggu beberapa saat dan coba lagi.");
+          setError(
+            "Database tidak terhubung. Silakan tunggu beberapa saat dan coba lagi."
+          );
         } else if (status === 400) {
-          setError(message || "Input tidak valid. Periksa email dan password Anda.");
+          setError(
+            message || "Input tidak valid. Periksa email dan password Anda."
+          );
         } else if (status === 401) {
-          setError(message || "Email atau password salah. Silakan periksa kembali.");
+          setError(
+            message || "Email atau password salah. Silakan periksa kembali."
+          );
         } else if (status === 500) {
           setError("Terjadi kesalahan pada server. Silakan coba lagi nanti.");
         } else {
@@ -168,7 +187,7 @@ const Login = () => {
                   onClick={() => navigate("/signin")}
                   className="py-2 px-8 bg-red-500 hover:bg-red-700 focus:ring-offset-red-200 text-white w-full transition ease-in duration-200 text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
                 >
-                  Sign In
+                  Sign Up
                 </button>
               </div>
 
