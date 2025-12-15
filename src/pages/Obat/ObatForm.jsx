@@ -18,8 +18,6 @@ const ObatForm = () => {
     catatan: "",
   });
 
-  const [gambar, setGambar] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -44,9 +42,6 @@ const ObatForm = () => {
           tanggalSelesai: obat.tanggalSelesai.split("T")[0],
           catatan: obat.catatan || "",
         });
-        if (obat.gambarObat) {
-          setImagePreview(`http://localhost:5000${obat.gambarObat}`);
-        }
       }
     } catch (err) {
       setError("Gagal memuat data obat");
@@ -56,19 +51,6 @@ const ObatForm = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Ukuran gambar maksimal 5MB");
-        return;
-      }
-      setGambar(file);
-      setImagePreview(URL.createObjectURL(file));
-      setError("");
-    }
   };
 
   const handleAddWaktu = () => {
@@ -110,24 +92,17 @@ const ObatForm = () => {
         return;
       }
 
-      const data = new FormData();
-      data.append("namaObat", formData.namaObat);
-      data.append("dosis", formData.dosis);
-      data.append("frekuensi", formData.frekuensi);
-      data.append("waktuKonsumsi", JSON.stringify(formData.waktuKonsumsi));
-      data.append("tanggalMulai", formData.tanggalMulai);
-      data.append("tanggalSelesai", formData.tanggalSelesai);
-      data.append("catatan", formData.catatan);
-
-      if (gambar) {
-        data.append("gambarObat", gambar);
-      }
+      const payload = {
+        ...formData,
+        waktuKonsumsi: formData.waktuKonsumsi,
+        catatan: formData.catatan,
+      };
 
       let response;
       if (isEdit) {
-        response = await obatService.update(id, data);
+        response = await obatService.update(id, payload);
       } else {
-        response = await obatService.create(data);
+        response = await obatService.create(payload);
       }
 
       if (response.data.success) {
@@ -306,31 +281,6 @@ const ObatForm = () => {
                     required
                   />
                 </div>
-              </div>
-
-              {/* Gambar Obat */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Foto Obat (Opsional)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-                {imagePreview && (
-                  <div className="mt-4">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-48 h-48 object-cover rounded-lg border-2 border-gray-200"
-                    />
-                  </div>
-                )}
-                <p className="text-xs text-gray-500 mt-2">
-                  Format: JPG, PNG, GIF, WebP. Maksimal 5MB
-                </p>
               </div>
 
               {/* Catatan */}

@@ -40,10 +40,6 @@ const obatSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  gambarObat: {
-    type: String, // URL to uploaded image
-    default: null,
-  },
   status: {
     type: String,
     enum: ["aktif", "selesai", "dibatalkan"],

@@ -1,8 +1,5 @@
 const Obat = require("../models/Obat");
 const Notification = require("../models/Notification");
-const path = require("path");
-const fs = require("fs");
-const { bufferToBase64, isBase64DataUrl } = require("../Utils/cloudinary");
 
 // Create Medicine
 exports.createObat = async (req, res) => {
@@ -23,48 +20,6 @@ exports.createObat = async (req, res) => {
         ? JSON.parse(waktuKonsumsi)
         : waktuKonsumsi;
 
-    // Handle file upload
-    let gambarObat = null;
-    if (req.file) {
-      console.log("📤 File received:", {
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        hasBuffer: !!req.file.buffer,
-        hasPath: !!req.file.path,
-      });
-
-      if (req.file.buffer) {
-        // Memory storage - convert to base64 (Vercel)
-        console.log("📦 Converting to base64...");
-        try {
-          gambarObat = bufferToBase64(req.file.buffer, req.file.mimetype);
-          console.log("✅ File converted to base64 successfully");
-        } catch (uploadError) {
-          console.error("❌ Error converting to base64:", uploadError);
-          return res.status(500).json({
-            success: false,
-            message: "Failed to process image",
-            error: process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production" 
-              ? uploadError.message 
-              : "Upload failed. Please try again.",
-          });
-        }
-      } else if (req.file.path) {
-        // Disk storage (local development)
-        gambarObat = `/uploads/obat/${req.file.filename}`;
-        console.log("📁 Using local file path:", gambarObat);
-      } else {
-        console.error("❌ File object missing both buffer and path");
-        return res.status(400).json({
-          success: false,
-          message: "Invalid file upload. File data is missing.",
-        });
-      }
-    } else {
-      console.log("ℹ️ No file uploaded");
-    }
-
     const obatData = {
       userId: req.userId,
       namaObat,
@@ -74,7 +29,6 @@ exports.createObat = async (req, res) => {
       tanggalMulai,
       tanggalSelesai,
       catatan,
-      gambarObat,
     };
 
     const obat = await Obat.create(obatData);
@@ -88,15 +42,6 @@ exports.createObat = async (req, res) => {
       data: { obat },
     });
   } catch (error) {
-    // Delete uploaded file if error occurs (only for disk storage)
-    if (req.file && req.file.path && !req.file.buffer) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error("Error deleting file:", unlinkError);
-      }
-    }
-
     console.error("Error creating obat:", error);
     res.status(500).json({
       success: false,
@@ -191,21 +136,6 @@ exports.updateObat = async (req, res) => {
       });
     }
 
-    // Delete old image if new one is uploaded (only for local file system)
-    if (req.file && obat.gambarObat && !isBase64DataUrl(obat.gambarObat) && req.file.path) {
-      try {
-        // Local file system only
-        const oldImagePath = path.join(__dirname, "..", obat.gambarObat);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-          console.log("🗑️ Old local file deleted:", oldImagePath);
-        }
-      } catch (deleteError) {
-        console.error("Error deleting old file:", deleteError);
-        // Continue with update even if deletion fails
-      }
-    }
-
     // Parse waktuKonsumsi if it's a string
     const parsedWaktu = waktuKonsumsi
       ? typeof waktuKonsumsi === "string"
@@ -225,45 +155,6 @@ exports.updateObat = async (req, res) => {
     obat.reminderActive =
       reminderActive !== undefined ? reminderActive : obat.reminderActive;
 
-    // Handle file upload
-    if (req.file) {
-      console.log("📤 File received for update:", {
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        hasBuffer: !!req.file.buffer,
-        hasPath: !!req.file.path,
-      });
-
-      if (req.file.buffer) {
-        // Memory storage - convert to base64 (Vercel)
-        console.log("📦 Converting to base64...");
-        try {
-          obat.gambarObat = bufferToBase64(req.file.buffer, req.file.mimetype);
-          console.log("✅ File converted to base64 successfully");
-        } catch (uploadError) {
-          console.error("❌ Error converting to base64:", uploadError);
-          return res.status(500).json({
-            success: false,
-            message: "Failed to process image",
-            error: process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production"
-              ? uploadError.message
-              : "Upload failed. Please try again.",
-          });
-        }
-      } else if (req.file.path) {
-        // Disk storage (local development)
-        obat.gambarObat = `/uploads/obat/${req.file.filename}`;
-        console.log("📁 Using local file path:", obat.gambarObat);
-      } else {
-        console.error("❌ File object missing both buffer and path");
-        return res.status(400).json({
-          success: false,
-          message: "Invalid file upload. File data is missing.",
-        });
-      }
-    }
-
     await obat.save();
 
     // Recreate notifications if schedule changed
@@ -278,15 +169,6 @@ exports.updateObat = async (req, res) => {
       data: { obat },
     });
   } catch (error) {
-    // Delete uploaded file if error occurs (only for disk storage)
-    if (req.file && req.file.path && !req.file.buffer) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error("Error deleting file:", unlinkError);
-      }
-    }
-
     console.error("Error updating obat:", error);
     res.status(500).json({
       success: false,
@@ -313,21 +195,6 @@ exports.deleteObat = async (req, res) => {
         success: false,
         message: "Medicine not found",
       });
-    }
-
-    // Delete image file (only for local file system, base64 is in MongoDB)
-    if (obat.gambarObat && !isBase64DataUrl(obat.gambarObat)) {
-      try {
-        // Local file system only
-        const imagePath = path.join(__dirname, "..", obat.gambarObat);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-          console.log("🗑️ Local file deleted:", imagePath);
-        }
-      } catch (deleteError) {
-        console.error("Error deleting file:", deleteError);
-        // Continue with deletion even if file delete fails
-      }
     }
 
     // Delete related notifications

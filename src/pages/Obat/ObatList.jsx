@@ -135,18 +135,10 @@ const ObatList = () => {
                   key={obat._id}
                   className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition"
                 >
-                  {/* Image */}
-                  {obat.gambarObat ? (
-                    <img
-                      src={`http://localhost:5000${obat.gambarObat}`}
-                      alt={obat.namaObat}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center">
-                      <span className="text-6xl">💊</span>
-                    </div>
-                  )}
+                  {/* Image placeholder */}
+                  <div className="w-full h-48 bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center">
+                    <span className="text-6xl">💊</span>
+                  </div>
 
                   {/* Content */}
                   <div className="p-5">

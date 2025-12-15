@@ -51,16 +51,10 @@ export const authService = {
 
 // Obat Services
 export const obatService = {
-  create: (formData) =>
-    api.post("/obat", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+  create: (data) => api.post("/obat", data),
   getAll: (params) => api.get("/obat", { params }),
   getById: (id) => api.get(`/obat/${id}`),
-  update: (id, formData) =>
-    api.put(`/obat/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+  update: (id, data) => api.put(`/obat/${id}`, data),
   delete: (id) => api.delete(`/obat/${id}`),
 };
 
